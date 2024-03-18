@@ -1,2 +1,5 @@
-from .base import MetadataSchema, Version
-from .rest import *
+from . import rest
+from . import fairdatapoint
+from . import catalog
+from . import version
+from . import foaf

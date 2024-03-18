@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+
+    fdp:
+        image: fairdata/fairdatapoint:latest
+        # volumes:
+        #     - ./application.yml:/fdp/application.yml:ro
+        # ports:
+        #     - 8880:80
+
+    fdp-client:
+        image: fairdata/fairdatapoint-client:latest
+        ports:
+            - 8888:80
+        environment:
+            - FDP_HOST=fdp
+        # volumes:
+        #     - ./_variables.scss:/src/scss/custom/_variables.scss:ro
+
+    mongo:
+        image: mongo:4.0.12
+        ports:
+            - 27017:27017
+        volumes:
+            - mongodb_volume:/data/db
+
+    graphdb:
+        image: ontotext/graphdb:10.1.2
+        restart: always
+        hostname: graphdb
+        ports:
+            - 9091:7200
+        volumes:
+            - graphdb_volume:/opt/graphdb/home
+
+volumes:
+    mongodb_volume:
+    graphdb_volume:

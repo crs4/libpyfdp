@@ -1,6 +1,7 @@
 # docstring references:
 # https://thomas-cokelaer.info/tutorials/sphinx/docstring_python.html
 # https://sphinx-rtd-tutorial.readthedocs.io/en/latest/docstrings.html
+# https://www.sphinx-doc.org/en/master/usage/domains/python.html
 
 import json
 import requests
@@ -104,7 +105,7 @@ class RestOperator(object):
             **default_headers, **headers} if headers is not None else
             default_headers)
 
-        payload = json.dumps(payload)
+        # payload = json.dumps(payload)
 
         response = requests.request(
             "POST",
@@ -124,7 +125,8 @@ class RestOperator(object):
                }
 
     def get(self, uri: str = None, headers: dict = None,
-            parameters: dict = None, raise_for_status: bool = True) -> dict:
+            parameters: dict = None, raise_for_status: bool = True,
+            absolute: bool = False) -> dict:
         """Executes a GET query to the Fair Data Point.
 
         :param uri: the relative path of the resource
@@ -142,6 +144,10 @@ class RestOperator(object):
                                default.
         :type raise_for_status: bool
 
+        :param absolute: the uri is considered absolute (does not prepend the
+                         Fair Data Point URL)
+        :type absolute: bool
+
         :return: a dictionary ``{'code': int, 'content': dict or text}``
         :rtype: dict
         """
@@ -157,7 +163,7 @@ class RestOperator(object):
 
         response = requests.request(
             "GET",
-            f"{self.base_url}/{uri}",
+            uri if absolute else f"{self.base_url}/{uri}",
             headers=actual_headers,
             params=parameters
         )

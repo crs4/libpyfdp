@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join('..', '..', 'src')))
+sys.path.insert(0, os.path.abspath(os.path.join('..', '..')))
 
 
 project = 'LibPyFDP'
@@ -26,7 +26,8 @@ extensions = ['sphinx.ext.autodoc',
 templates_path = ['_templates']
 exclude_patterns = []
 
-autodoc_member_order = 'groupwise'
+#  autodoc_member_order = 'groupwise'
+autodoc_member_order = 'bysource'
 
 
 # -- Options for HTML output -------------------------------------------------
