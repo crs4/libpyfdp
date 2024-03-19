@@ -1,35 +1,61 @@
+import os
 import pytest
 import requests
-from urllib.parse import urljoin
-from urllib3.util.retry import Retry
-from requests.adapters import HTTPAdapter
+from requests import ConnectionError, HTTPError
 
-pytest_plugins = ["docker_compose"]
+from fdp.fairdatapoint import FairDataPoint
 
 
-# Invoking this fixture: 'function_scoped_container_getter' starts all services
-@pytest.fixture(scope="module")
-def wait_for_fdp(module_scoped_container_getter):
+def is_responsive(url):
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            return True
+    except ConnectionError:
+        return False
+
+
+@pytest.fixture(scope="session")
+def docker_compose_file(pytestconfig):
+    return os.path.join(str(pytestconfig.rootdir),
+                        "integration",
+                        "docker-compose.yml")
+
+
+@pytest.fixture(scope="class")
+def fdp_client_service(docker_ip, docker_services):
     """Wait for the api from Fair Data Point to become responsive"""
-    request_session = requests.Session()
-    retries = Retry(total=50,
-                    backoff_factor=0.1,
-                    status_forcelist=[500, 502, 503, 504])
-    request_session.mount('http://', HTTPAdapter(max_retries=retries))
 
-    # service = module_scoped_container_getter.get("fdp").network_info[0]
-    service = module_scoped_container_getter.get("fdp-client").network_info[0]
-    print(service.hostname, service.host_port)
-    api_url = "http://%s:%s/" % (service.hostname, service.host_port)
-    assert request_session.get(api_url)
-    return request_session, api_url
+    port = docker_services.port_for("fdp-client", 80)
+
+    fair_data_point = "http://%s:%s" % (docker_ip, port)
+
+    docker_services.wait_until_responsive(
+        timeout=30.0, pause=0.1, check=lambda:
+        is_responsive(fair_data_point)
+    )
+
+    return fair_data_point
 
 
-def test_read_and_write(wait_for_fdp):
-    """The Api is now verified good to go and tests can interact with it"""
-    request_session, api_url = wait_for_fdp
-    data_string = 'some_data'
-    request_session.put('%sitems/2?data_string=%s' % (api_url, data_string))
-    item = request_session.get(urljoin(api_url, 'items/2')).json()
-    assert item['data'] == data_string
-    request_session.delete(urljoin(api_url, 'items/2'))
+class TestFairDataPointConnection:
+    def test_fair_data_point_no_token(self, fdp_client_service):
+        """Tests the connection to the Fair Data Point with no token
+           authentication.
+        """
+        fair_data_point = fdp_client_service
+
+        FDP = FairDataPoint(fair_data_point)
+
+        catalogs = FDP.find_catalogs()
+
+        assert len(catalogs) == 0
+
+    def test_fair_data_point_wrong_token(self, fdp_client_service):
+        """Tests the connection to the Fair Data Point with  a wrong token."""
+        fair_data_point = fdp_client_service
+
+        FDP = FairDataPoint(fair_data_point, token='AWrongToken')
+
+        with pytest.raises(HTTPError):
+            FDP.find_catalogs()

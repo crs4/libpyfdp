@@ -155,11 +155,12 @@ class RestOperator(object):
         default_headers = {
             'Content-Type': 'application/json',
             'Authorization': f'Bearer {self.token}'
+            if self.token is not None else None,
         }
 
         actual_headers = ({
-            **default_headers, **headers} if headers is not None else
-            default_headers)
+                **default_headers, **headers
+            } if headers is not None else default_headers)
 
         response = requests.request(
             "GET",
