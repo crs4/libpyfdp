@@ -1,6 +1,6 @@
 import datetime
 
-from rdflib import Graph, URIRef, Literal, BNode
+from rdflib import Graph, URIRef, Literal, BNode, IdentifiedNode
 from rdflib.namespace import DCAT, DCTERMS, FOAF, RDF  # , XSD, SKOS
 
 import fdp.fairdatapoint
@@ -21,9 +21,20 @@ class Catalog(object):
     def __init__(self, fair_data_point: fdp.fairdatapoint.FairDataPoint = None,
                  iri: str = None, uuid: str = None):
         self._uuid = uuid
-        self._iri = iri or (f'{self._fair_data_point}/catalog/{self._uuid}' if
-                            self._uuid is not None else BNode())
         self._fair_data_point = fair_data_point or None
+
+        if iri is not None:
+            if type(iri) is str:
+                self._iri = URIRef(iri)
+            elif type(iri) in [IdentifiedNode, URIRef, BNode]:
+                self._iri = iri
+            else:
+                raise TypeError((f'Type {type(iri)} not allowed for '
+                                 '"iri" argument'))
+        elif self._uuid is not None:
+            self._iri = URIRef(f'{self._fair_data_point}/catalog/{self._uuid}')
+        else:
+            self._iri = BNode()
 
         self._tainted = False
 
@@ -43,20 +54,20 @@ class Catalog(object):
         self._rdf.bind("foaf", FOAF)
 
         self._rdf.add((
-            URIRef(self._iri),
+            self._iri,
             RDF.type,
             DCAT.Catalog))
 
         self._rdf.add((
-            URIRef(self._iri),
+            self._iri,
             RDF.type,
             DCAT.Resource))
 
         if self._fair_data_point:
             self._rdf.add((
-                URIRef(self._iri),
+                self._iri,
                 DCTERMS.isPartOf,
-                URIRef(self._fair_data_point.uri)))
+                URIRef(self._fair_data_point.url)))
 
     ###########################################################################
     # DCATv3 Class properties                                                 #
@@ -163,7 +174,11 @@ class Catalog(object):
     @publisher.setter
     def publisher(self, publisher: str or dict or fdp.FOAFAgent):
         if isinstance(publisher, str):
-            self._publisher = fdp.foaf.FOAFAgent()
+            self._publisher = fdp.foaf.FOAFAgent(dictionary={
+                'type': 'Person',
+                'name': publisher
+            })
+            self._rdf += self._publisher.rdf()
             self._tainted = True
         elif isinstance(publisher, fdp.foaf.FOAFAgent):
             self._publisher = publisher
@@ -178,6 +193,8 @@ class Catalog(object):
         else:
             raise ValueError(("publisher must be a FOAFAgent's class instance "
                               "or a string in the format or a dictionary."))
+        self._rdf.add((URIRef(self._iri), DCTERMS.publisher,
+                       self._publisher.iri))
 
     @property
     def title(self):
@@ -200,16 +217,15 @@ class Catalog(object):
         return self._version
 
     @version.setter
-    def version(self, version: str or fdp.Version or int):
+    def version(self, version: str or fdp.version.Version or int):
         if isinstance(version, str):
-            self._version = fdp.Version(version=version)
+            self._version = fdp.version.Version(version=version)
         elif isinstance(version, fdp.version.Version):
             self._version = version
         elif isinstance(version, int):
             self._version = fdp.version.Version(
                 major=version, minor=0, patch=0)
         else:
-            print(version)
             raise ValueError("version must be a Version's class instance or a "
                              "string in the format \"major.minor.patch\", "
                              "e.g. \"1.0.0\".")
@@ -228,12 +244,23 @@ class Catalog(object):
         return self._fair_data_point
 
     @fair_data_point.setter
-    def fair_data_point(self, fair_data_point: str):
-        self._fair_data_point = fair_data_point
+    def fair_data_point(self, fair_data_point: str or
+                        fdp.fairdatapoint.FairDataPoint):
+        if isinstance(fair_data_point, str):
+            self._fair_data_point = fdp.fairdatapoint.FairDataPoint(
+                fair_data_point)
+        elif isinstance(fair_data_point, fdp.fairdatapoint.FairDataPoint):
+            self._fair_data_point = fair_data_point
+
         self._rdf.add((
             URIRef(self._iri),
             DCTERMS.isPartOf,
-            URIRef(self._fair_data_point)))
+            URIRef(self._fair_data_point.url)))
+
+    @property
+    def iri(self):
+        """The iri of the Catalog instance."""
+        return self._iri
 
     @property
     def properties(self):
@@ -293,20 +320,30 @@ class Catalog(object):
 
             # Creator is a foaf:Agent, e.g. foaf:Group or foaf:Person
             _creator = self._rdf.value(subject=self._iri,
-                                       predicate=DCTERMS.creator, any=False)
-            _creator_agent = self._rdf.value(
-                subject=_creator, predicate=RDF.type
-            ).n3(self._rdf.namespace_manager)
+                                       predicate=DCTERMS.creator,
+                                       any=False)
 
-            _creator_list = []
+            # XXX Could it be done better with metaclasses?
+            if _creator is not None:
+                _creator = fdp.foaf.FOAFFactory().get_agent(
+                    self._rdf.cbd(_creator))
+
+            # Creator is a foaf:Agent, e.g. foaf:Group or foaf:Person
+            # _creator = self._rdf.value(subject=self._iri,
+            #                            predicate=DCTERMS.creator, any=False)
+            # _creator_agent = self._rdf.value(
+            #     subject=_creator, predicate=RDF.type
+            # ).n3(self._rdf.namespace_manager)
+
+            # _creator_list = []
             # _creator should consider also Person and Agent types
-            if _creator_agent == "foaf:Group":
-                _creator_member = self._rdf.value(subject=_creator,
-                                                  predicate=FOAF.member,
-                                                  any=False)
+            # if _creator_agent == "foaf:Group":
+            #     _creator_member = self._rdf.value(subject=_creator,
+            #                                       predicate=FOAF.member,
+            #                                       any=False)
 
-                for person in self._rdf.objects(_creator_member, FOAF.name):
-                    _creator_list.append(str(person))
+            #     for person in self._rdf.objects(_creator_member, FOAF.name):
+            #         _creator_list.append(str(person))
 
             _description = self._rdf.value(subject=self._iri,
                                            predicate=DCTERMS.description,
@@ -339,7 +376,8 @@ class Catalog(object):
             _publisher = fdp.foaf.FOAFFactory().get_agent(
                 self._rdf.cbd(_publisher))
 
-            self._creator = _creator_list
+            # self._creator = _creator_list
+            self._creator = _creator
             self._description = str(_description)
             self._homepage = str(_homepage)
             self._issued = datetime.datetime.fromisoformat(str(_issued))
@@ -383,40 +421,35 @@ class Catalog(object):
         self._description = self._schema['description']
         self._definition = self._schema['definition']
 
-    # def write(self, allow_update: bool = True,
-    # allow_duplicates: bool = False):
-        # """Writes the instance attributes to the Fair Data Point.
+    def write(self, allow_update: bool = True, allow_duplicates: bool = False):
+        """Writes the instance attributes to the Fair Data Point.
 
-        # :param allow_update: if true, override the instance's attribute;
-        # :type allow_update: bool
+        :param allow_update: if true, override the instance's attribute;
+        :type allow_update: bool
 
-        # :param allow_duplicates: write the Metadata Schema even if there are
-        #                           other schemas with the same name.
-        # :type allow_duplicates: bool
+        :param allow_duplicates: write the catalog even if there are
+                                  other catalogs with the same name.
+        :type allow_duplicates: bool
 
-        # :raises AlreadyPresentError: if the schema already exists in the Fair
-        #                              Data Point and allow_duplicates is not
-        #                              set.
-
-        # .. note::
-        #     a property called 'payload' that returns a dictionary with the
-        #     attributes must be implemented.
-        # """
+        :raises AlreadyPresentError: if the catalog already exists in the Fair
+                                     Data Point and allow_duplicates is not
+                                     set.
+        """
         # uuids = self.find(self._title)
         # uuids = None
 
-        # headers = {
-        #     'Content-Type': 'text/turtle',
-        # }
+        headers = {
+            'Content-Type': 'text/turtle',
+        }
 
-        # if uuids is None or allow_duplicates:
-        #     r = self._rest_operator.post('catalog',
-        #                                  headers=headers,
-        #                                  payload=self.rdf())
-        #     _rdf = Graph().parse(data=r['content'])
-        #     self._uuid = list(
-        #         _rdf.objects(None, DCTERMS.identifier, unique=True))[0]
-        #     self._uuid = self._uuid.rpartition('/')[2]
+        if self._uuid is None or allow_duplicates:
+            r = self._fair_data_point._rest_operator.post('catalog',
+                                                          headers=headers,
+                                                          payload=self.rdf())
+            _rdf = Graph().parse(data=r['content'])
+            self._uuid = list(
+                _rdf.objects(None, DCTERMS.identifier, unique=True))[0]
+            self._uuid = self._uuid.rpartition('/')[2]
 
         # elif allow_update:
         #     r = self._rest_operator.put(f'metadata-schemas/{uuids[0]}/draft',

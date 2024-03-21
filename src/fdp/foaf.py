@@ -3,7 +3,8 @@ from rdflib.namespace import FOAF, RDF
 
 
 class FOAFFactory:
-    _SUPPORTED_CLASSES = ['foaf:Agent', 'foaf:Group', 'foaf:Organization']
+    _SUPPORTED_CLASSES = ['foaf:Agent', 'foaf:Group', 'foaf:Organization',
+                          'foaf:Person']
 
     def get_agent(self, rdf_graph: Graph):
         node_types = list(
@@ -28,6 +29,8 @@ class FOAFFactory:
                 return FOAFGroup(rdf_graph=rdf_graph)
             elif node_types[0] == 'foaf:Organization':
                 return FOAFOrganization(rdf_graph=rdf_graph)
+            elif node_types[0] == 'foaf:Person':
+                return FOAFOrganization(rdf_graph=rdf_graph)
         # There is only one type and is a generic 'foaf:Agent'
         elif set(node_types) == set(['foaf:Agent']):
             return FOAFAgent(rdf_graph)
@@ -42,6 +45,8 @@ class FOAFAgent(object):
                  rdf_graph: Graph = None):
         self._iri = iri
         self._dictionary = dictionary
+
+        self._rdf = None
 
         for _p in [_p.rpartition(':')[2] for _p in self._SUPPORTED_PROPERTIES]:
             setattr(FOAFAgent, f'_{_p}', None)
@@ -58,25 +63,34 @@ class FOAFAgent(object):
                     _p = _p.partition(':')[2]
                     setattr(self, f'_{_p}', _o)
 
-        else:
+        elif self._dictionary:
             self._rdf = Graph()
+
+            if 'iri' not in self._dictionary:
+                self._iri = BNode()
+            else:
+                self._iri = URIRef(self._dictionary['iri'])
+
+            for p, o in self._dictionary.items():
+                if p.lower() == 'type':
+                    self._rdf.add((self._iri, RDF.type, getattr(FOAF, o)))
+                else:
+                    self._rdf.add((self._iri, getattr(FOAF, p), Literal(o)))
+
 #         self._name = None
 
 #         self._agent = None
 
-            if self._iri is None:
-                self._iri = BNode()
-            else:
-                self._iri = URIRef(self._iri)
+#            if self._iri is None:
+#                self._iri = BNode()
+#            else:
+#                self._iri = URIRef(self._iri)
 
-#         if self._dictionary:
-#             for p, o in self._dictionary.items():
-#                 if p.lower() == 'type':
-#                     self._rdf.add((self._iri, RDF.type, getattr(FOAF, o)))
-#                 else:
-#                     self._rdf.add((self._iri, getattr(FOAF, p), Literal(o)))
-#
 #         self._rdf.add((self._iri, RDF.type, FOAF.Agent))
+
+    @property
+    def iri(self):
+        return self._iri
 
     def rdf(self):
         return self._rdf
@@ -85,6 +99,15 @@ class FOAFAgent(object):
         return (f"<{self.__class__.__module__}.{self.__class__.__name__}"
                 "{}".format(f", name: {self._name}>" if self._name is not None
                             else ">"))
+
+
+class FOAFPerson(FOAFAgent):
+    """A class representing a FOAF Person."""
+
+    def __init__(self, iri: str = None, dictionary: dict = None,
+                 rdf_graph: Graph = None):
+        super().__init__(iri, dictionary, rdf_graph)
+        self._rdf.set((self._iri, RDF.type, FOAF.Person))
 
 
 class FOAFOrganization(FOAFAgent):

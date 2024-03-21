@@ -2,6 +2,9 @@ import fdp.rest
 
 from rdflib import Graph, Namespace
 
+import warnings
+warnings.filterwarnings("ignore")
+
 LDP = Namespace("http://www.w3.org/ns/ldp#")
 
 
@@ -20,7 +23,7 @@ class FairDataPoint(object):
         self._rest_operator = rest_operator
 
     @property
-    def uri(self) -> str:
+    def url(self) -> str:
         """The uri of the Fair Data Point."""
         return self._url
 
