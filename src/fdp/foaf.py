@@ -30,7 +30,7 @@ class FOAFFactory:
             elif node_types[0] == 'foaf:Organization':
                 return FOAFOrganization(rdf_graph=rdf_graph)
             elif node_types[0] == 'foaf:Person':
-                return FOAFOrganization(rdf_graph=rdf_graph)
+                return FOAFPerson(rdf_graph=rdf_graph)
         # There is only one type and is a generic 'foaf:Agent'
         elif set(node_types) == set(['foaf:Agent']):
             return FOAFAgent(rdf_graph)
@@ -42,19 +42,20 @@ class FOAFAgent(object):
     _SUPPORTED_PROPERTIES = ['foaf:homepage', 'foaf:name']
 
     def __init__(self, iri: str = None, dictionary: dict = None,
-                 rdf_graph: Graph = None):
-        self._iri = iri
+                 rdf_graph: Graph = None, name: str = None):
         self._dictionary = dictionary
+        self._tainted = False
 
-        self._rdf = None
+        self._rdf = rdf_graph or Graph()
 
         for _p in [_p.rpartition(':')[2] for _p in self._SUPPORTED_PROPERTIES]:
             setattr(FOAFAgent, f'_{_p}', None)
 
+        self._name = name or None
+
         # If an rdf Graph is provided, dictionary and iri parameters
         # are ignored
         if rdf_graph is not None:
-            self._rdf = rdf_graph
             self._iri = next(self._rdf.subjects(predicate=RDF.type))
 
             for _p, _o in self._rdf.predicate_objects(self._iri):
@@ -64,7 +65,6 @@ class FOAFAgent(object):
                     setattr(self, f'_{_p}', _o)
 
         elif self._dictionary:
-            self._rdf = Graph()
 
             if 'iri' not in self._dictionary:
                 self._iri = BNode()
@@ -76,15 +76,11 @@ class FOAFAgent(object):
                     self._rdf.add((self._iri, RDF.type, getattr(FOAF, o)))
                 else:
                     self._rdf.add((self._iri, getattr(FOAF, p), Literal(o)))
+        else:
+            self._iri = BNode()
 
-#         self._name = None
-
-#         self._agent = None
-
-#            if self._iri is None:
-#                self._iri = BNode()
-#            else:
-#                self._iri = URIRef(self._iri)
+        # used for Organization and Group classes
+        self._members = {}
 
 #         self._rdf.add((self._iri, RDF.type, FOAF.Agent))
 
@@ -95,27 +91,92 @@ class FOAFAgent(object):
     def rdf(self):
         return self._rdf
 
-    def __repr__(self):
+    @property
+    def tainted(self) -> bool:
+        """Whether the instance has been modified after creation/sync with the
+        Fair Data Point."""
+        return self._tainted
+
+    @property
+    def homepage(self):
+        """The ``foaf:homepage`` property."""
+        return self._homepage
+
+    @homepage.setter
+    def homepage(self, homepage: str or Literal):
+        if type(homepage) is str:
+            self._homepage = homepage
+        elif type(homepage) is Literal:
+            self._homepage = str(homepage)
+        else:
+            raise TypeError
+
+        self._rdf.add((
+            URIRef(self._iri),
+            FOAF.homepage,
+            URIRef(self._homepage)))
+
+        self._tainted = True
+
+    @property
+    def name(self):
+        """The ``foaf:name`` property."""
+        return self._name
+
+    @name.setter
+    def name(self, name: str or Literal):
+        if type(name) is str:
+            self._name = name
+        elif type(name) is Literal:
+            self._name = str(name)
+        else:
+            raise TypeError
+
+        self._rdf.add((
+            URIRef(self._iri),
+            FOAF.name,
+            Literal(self._name)))
+
+        self._tainted = True
+
+    def __str__(self):
         return (f"<{self.__class__.__module__}.{self.__class__.__name__}"
+                f", iri: {self._iri}"
                 "{}".format(f", name: {self._name}>" if self._name is not None
                             else ">"))
+
+    def add_member(self, member):
+        self._members.update({member.iri: member})
+
+    @property
+    def members(self) -> dict:
+        """The members of the FOAF Organization."""
+        return self._members
 
 
 class FOAFPerson(FOAFAgent):
     """A class representing a FOAF Person."""
 
     def __init__(self, iri: str = None, dictionary: dict = None,
-                 rdf_graph: Graph = None):
-        super().__init__(iri, dictionary, rdf_graph)
+                 rdf_graph: Graph = None, name: str = None):
+        super().__init__(iri, dictionary, rdf_graph, name)
         self._rdf.set((self._iri, RDF.type, FOAF.Person))
+
+    def add_member(self, member: FOAFAgent):
+        raise NotImplementedError
+
+    @property
+    def members(self) -> dict:
+        """Method not available for FOAF Person."""
+        raise NotImplementedError
 
 
 class FOAFOrganization(FOAFAgent):
     """A class representing a FOAF Organization."""
 
     def __init__(self, iri: str = None, dictionary: dict = None,
-                 rdf_graph: Graph = None):
-        super().__init__(iri, dictionary, rdf_graph)
+                 rdf_graph: Graph = None, name: str = None):
+        super().__init__(iri, dictionary, rdf_graph, name)
         self._rdf.set((self._iri, RDF.type, FOAF.Organization))
 
 
@@ -123,7 +184,6 @@ class FOAFGroup(FOAFAgent):
     """A class representing a FOAF Group."""
 
     def __init__(self, iri: str = None, dictionary: dict = None,
-                 rdf_graph: Graph = None):
-        raise NotImplementedError
-        super().__init__(iri, dictionary, rdf_graph)
+                 rdf_graph: Graph = None, name: str = None):
+        super().__init__(iri, dictionary, rdf_graph, name)
         self._rdf.set((self._iri, RDF.type, FOAF.Group))

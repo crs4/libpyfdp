@@ -1,15 +1,38 @@
 class Version(object):
-    def __init__(self, version: str = None, major: int = None,
-                 minor: int = None, patch: int = None):
-        if version:
-            _major, _minor, _patch = version.split('.')
-            self._major = int(_major)
-            self._minor = int(_minor)
-            self._patch = int(_patch)
+    def __init__(self, version: str or tuple(int, int, int) = None,
+                 major: int = None, minor: int = None, patch: int = None):
+
+        self._major = 1
+        self._minor = 0
+        self._patch = 0
+
+        if version is not None:
+            if type(version) is str:
+                _version = version.split('.')
+
+                self._major = (int(_version[0]) if len(_version) > 0 else
+                               self._major)
+                self._minor = (int(_version[1]) if len(_version) > 1 else
+                               self._minor)
+                self._patch = (int(_version[2]) if len(_version) > 2 else
+                               self._patch)
+
+            elif type(version) is tuple:
+                self._major = (int(version[0]) if len(version) > 0 else
+                               self._major)
+                self._minor = (int(version[1]) if len(version) > 1 else
+                               self._minor)
+                self._patch = (int(version[2]) if len(version) > 2 else
+                               self._patch)
         else:
-            self._major = major
-            self._minor = minor
-            self._patch = patch
+            self._major = major or self._major
+            self._minor = minor or self._minor
+            self._patch = patch or self._patch
+
+    def __eq__(self, other):
+        return (self._major == other._major and
+                self._minor == other._minor and
+                self._patch == other._patch)
 
     @property
     def major(self):

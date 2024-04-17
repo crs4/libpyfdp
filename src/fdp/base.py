@@ -17,6 +17,11 @@ class InstanceOverrideError(RuntimeError):
         super().__init__(message)
 
 
+class IncompatibleClassError(RuntimeError):
+    def __init__(self, message):
+        super().__init__(message)
+
+
 class FairDataPointItem(object):
     """Base class for all the Fair Data Point entities."""
     def __init__(self):
