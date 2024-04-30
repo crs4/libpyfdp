@@ -39,7 +39,7 @@ class FOAFFactory:
 class FOAFAgent(object):
     """A class representing a FOAF Agent."""
 
-    _SUPPORTED_PROPERTIES = ['foaf:homepage', 'foaf:name']
+    _SUPPORTED_PROPERTIES = ['foaf:homepage', 'foaf:name', 'foaf:member']
 
     def __init__(self, iri: str = None, dictionary: dict = None,
                  rdf_graph: Graph = None, name: str = None):
@@ -47,6 +47,8 @@ class FOAFAgent(object):
         self._tainted = False
 
         self._rdf = rdf_graph or Graph()
+
+        self._member_node = None
 
         for _p in [_p.rpartition(':')[2] for _p in self._SUPPORTED_PROPERTIES]:
             setattr(FOAFAgent, f'_{_p}', None)
@@ -79,15 +81,13 @@ class FOAFAgent(object):
         else:
             self._iri = BNode()
 
-        # used for Organization and Group classes
-        self._members = {}
-
 #         self._rdf.add((self._iri, RDF.type, FOAF.Agent))
 
     @property
     def iri(self):
         return self._iri
 
+    @property
     def rdf(self):
         return self._rdf
 
@@ -112,7 +112,7 @@ class FOAFAgent(object):
             raise TypeError
 
         self._rdf.add((
-            URIRef(self._iri),
+            self._iri,
             FOAF.homepage,
             URIRef(self._homepage)))
 
@@ -133,7 +133,7 @@ class FOAFAgent(object):
             raise TypeError
 
         self._rdf.add((
-            URIRef(self._iri),
+            self._iri,
             FOAF.name,
             Literal(self._name)))
 
@@ -146,12 +146,25 @@ class FOAFAgent(object):
                             else ">"))
 
     def add_member(self, member):
-        self._members.update({member.iri: member})
+        """Adds a member to a Group."""
+        if self._member is None:
+            self._member = {}
+            self._member_node = BNode()
+
+        self._member.update({member.iri: member})
+
+        self._rdf.add((
+            self._iri,
+            FOAF.member,
+            member.iri
+        ))
+
+        self._rdf += member.rdf
 
     @property
-    def members(self) -> dict:
+    def member(self) -> dict:
         """The members of the FOAF Organization."""
-        return self._members
+        return self._member
 
 
 class FOAFPerson(FOAFAgent):
@@ -160,7 +173,11 @@ class FOAFPerson(FOAFAgent):
     def __init__(self, iri: str = None, dictionary: dict = None,
                  rdf_graph: Graph = None, name: str = None):
         super().__init__(iri, dictionary, rdf_graph, name)
-        self._rdf.set((self._iri, RDF.type, FOAF.Person))
+
+        self._rdf.set((
+            self._iri,
+            RDF.type,
+            FOAF.Person))
 
     def add_member(self, member: FOAFAgent):
         raise NotImplementedError
@@ -177,7 +194,11 @@ class FOAFOrganization(FOAFAgent):
     def __init__(self, iri: str = None, dictionary: dict = None,
                  rdf_graph: Graph = None, name: str = None):
         super().__init__(iri, dictionary, rdf_graph, name)
-        self._rdf.set((self._iri, RDF.type, FOAF.Organization))
+        self._rdf.set((
+            self._iri,
+            RDF.type,
+            FOAF.Organization
+        ))
 
 
 class FOAFGroup(FOAFAgent):
@@ -186,4 +207,8 @@ class FOAFGroup(FOAFAgent):
     def __init__(self, iri: str = None, dictionary: dict = None,
                  rdf_graph: Graph = None, name: str = None):
         super().__init__(iri, dictionary, rdf_graph, name)
-        self._rdf.set((self._iri, RDF.type, FOAF.Group))
+        self._rdf.set((
+            self._iri,
+            RDF.type,
+            FOAF.Group
+        ))
