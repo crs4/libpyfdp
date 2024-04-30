@@ -178,11 +178,11 @@ class Catalog(object):
                 'type': 'Person',
                 'name': publisher
             })
-            self._rdf += self._publisher.rdf()
+            self._rdf += self._publisher.rdf
             self._tainted = True
         elif isinstance(publisher, fdp.foaf.FOAFAgent):
             self._publisher = publisher
-            self._rdf += self._publisher.rdf()
+            self._rdf += self._publisher.rdf
             self._tainted = True
         elif isinstance(publisher, dict):
             self._publisher = fdp.foaf.FOAFAgent(dictionary=publisher)
@@ -445,7 +445,7 @@ class Catalog(object):
         if self._uuid is None or allow_duplicates:
             r = self._fair_data_point._rest_operator.post('catalog',
                                                           headers=headers,
-                                                          payload=self.rdf())
+                                                          payload=self.rdf)
             _rdf = Graph().parse(data=r['content'])
             self._uuid = list(
                 _rdf.objects(None, DCTERMS.identifier, unique=True))[0]

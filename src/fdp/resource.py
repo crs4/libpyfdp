@@ -1,9 +1,12 @@
 import datetime
 
 from rdflib import URIRef, Literal, Graph, BNode, IdentifiedNode
-from rdflib.namespace import DCTERMS, DCAT
+from rdflib.namespace import DCTERMS, DCAT, Namespace, RDF
 
 import fdp.fairdatapoint
+
+DQV = Namespace("http://www.w3.org/ns/dqv#")
+SPDX = Namespace("http://spdx.org/rdf/terms#")
 
 
 class Resource():
@@ -23,6 +26,8 @@ class Resource():
 
         self._rdf.bind("dcat", DCAT)
         self._rdf.bind("dcterms", DCTERMS)
+        self._rdf.bind("dqv", DQV)
+        self._rdf.bind("spdx", SPDX)
 
         self._uuid = uuid
         self._fair_data_point = fair_data_point or 'http://127.0.0.1'
@@ -44,6 +49,11 @@ class Resource():
         self._tainted = False
 
         self.__frozen = True
+
+        self._rdf.add((
+            self._iri,
+            RDF.type,
+            DCAT.Resource))
 
     def __setattr__(self, key, value):
         if self.__frozen and not hasattr(self, key):
@@ -72,19 +82,22 @@ class Resource():
             self._creator = fdp.foaf.FOAFAgent()
             self._creator.name = creator
 
-            self._rdf += self._creator.rdf()
+            self._rdf += self._creator.rdf
 
             self._tainted = True
         elif isinstance(creator, fdp.foaf.FOAFAgent):
             self._creator = creator
-            self._rdf += self._creator.rdf()
+            self._rdf += self._creator.rdf
             self._tainted = True
         else:
             raise TypeError(("creator must be a FOAFAgent's class instance "
                              "or a string."))
 
-        self._rdf.add((URIRef(self._iri), DCTERMS.creator,
-                       self._creator.iri))
+        self._rdf.add((
+            self._iri,
+            DCTERMS.creator,
+            self._creator.iri
+        ))
 
     @property
     def description(self):
@@ -101,7 +114,7 @@ class Resource():
             raise TypeError
 
         self._rdf.add((
-            URIRef(self._iri),
+            self._iri,
             DCTERMS.description,
             Literal(self._description)))
 
@@ -123,8 +136,11 @@ class Resource():
                              "class instance or a string in the "
                              "format\"YYYY-MM-DDTHH:MM:SSTZ\"."))
 
-        self._rdf.add((URIRef(self._iri), DCTERMS.issued,
-                       Literal(self._issued)))
+        self._rdf.add((
+            self._iri,
+            DCTERMS.issued,
+            Literal(self._issued)
+        ))
 
         self._tainted = True
 
@@ -148,8 +164,11 @@ class Resource():
             raise TypeError(("license property must be an URIRef "
                              "class instance or a str."))
 
-        self._rdf.add((URIRef(self._iri), DCTERMS.license,
-                       Literal(self._license)))
+        self._rdf.add((
+            self._iri,
+            DCTERMS.license,
+            Literal(self._license)
+        ))
 
         self._tainted = True
 
@@ -164,19 +183,24 @@ class Resource():
             self._publisher = fdp.foaf.FOAFAgent()
             self._publisher.name = publisher
 
-            self._rdf += self._publisher.rdf()
+            self._rdf += self._publisher.rdf
 
             self._tainted = True
         elif isinstance(publisher, fdp.foaf.FOAFAgent):
             self._publisher = publisher
-            self._rdf += self._publisher.rdf()
+
+            self._rdf += self._publisher.rdf
+
             self._tainted = True
         else:
             raise TypeError(("publisher must be a FOAFAgent's class instance "
                              "or a string."))
 
-        self._rdf.add((URIRef(self._iri), DCTERMS.publisher,
-                       self._publisher.iri))
+        self._rdf.add((
+            self._iri,
+            DCTERMS.publisher,
+            self._publisher.iri
+        ))
 
     @property
     def title(self):
@@ -193,7 +217,7 @@ class Resource():
             raise TypeError
 
         self._rdf.add((
-            URIRef(self._iri),
+            self._iri,
             DCTERMS.title,
             Literal(self._title)))
 
@@ -219,8 +243,9 @@ class Resource():
         else:
             raise TypeError("version must be a Version's class valid value.")
         self._rdf.add((
-            URIRef(self._iri),
+            self._iri,
             DCAT.version,
-            Literal(self._version.as_str())))
+            Literal(self._version.as_str())
+        ))
 
         self._tainted = True
