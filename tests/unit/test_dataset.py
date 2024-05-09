@@ -1,3 +1,6 @@
+# pylint: disable=unidiomatic-typecheck,redefined-outer-name
+# pylint: disable=missing-module-docstring,missing-class-docstring
+# pylint: disable=missing-function-docstring
 import datetime
 
 import pytest
@@ -10,10 +13,12 @@ from fdp.dataset import Dataset, DatasetSeries
 from fdp.distribution import Distribution, Checksum
 from fdp.foaf import FOAFGroup, FOAFOrganization, FOAFPerson
 
+from test_resource import TestResource
+
 SPDX = Namespace("http://spdx.org/rdf/terms")
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="session")
 def tsv_distribution():
     """Returns a TSV compressed file Distribution."""
 
@@ -80,14 +85,19 @@ def dataset_series(csv_distribution):
     return dataset_series
 
 
-class TestDataset:
+class TestDataset(TestResource):
     """Test case for the Dataset class."""
 
+    @pytest.fixture
+    def testing_class(self):
+        """Provides the class instance to test."""
+        return Dataset
+
     def test_dataset_add_distribution(self, tsv_distribution,
-                                      csv_distribution):
+                                      csv_distribution, testing_class):
         """Tests the distribution property's setter/getter."""
 
-        dataset = Dataset()
+        dataset = testing_class()
         dataset.add_distribution(tsv_distribution)
 
         assert len(dataset.distributions) == 1
@@ -106,7 +116,7 @@ class TestDataset:
             assert type(distro_obj) is Distribution
 
         # Property set as an incompatible data type
-        dataset = Dataset()
+        dataset = testing_class()
 
         with pytest.raises(TypeError):
             dataset.add_distribution("A string distribution?")
@@ -114,16 +124,16 @@ class TestDataset:
         assert dataset.creator is None
         assert dataset.tainted is False
 
-    def test_dataset_in_series(self, dataset_series):
+    def test_dataset_in_series(self, dataset_series, testing_class):
         """Tests the inSeries property's setter/getter."""
 
-        dataset = Dataset()
+        dataset = testing_class()
 
         assert dataset.inSeries is None
         assert dataset.tainted is False
 
         # Property set as a str
-        dataset = Dataset()
+        dataset = testing_class()
         dataset.inSeries = str(dataset_series.iri)
 
         assert isinstance(dataset.inSeries, URIRef) is True
@@ -131,7 +141,7 @@ class TestDataset:
         assert dataset.tainted is True
 
         # Property set as a BNode
-        dataset = Dataset()
+        dataset = testing_class()
         dataset.inSeries = BNode()
 
         assert isinstance(dataset.inSeries, BNode) is True
@@ -139,7 +149,7 @@ class TestDataset:
         assert dataset.tainted is True
 
         # Property set as a URIRef
-        dataset = Dataset()
+        dataset = testing_class()
         dataset.inSeries = URIRef(str(dataset_series.iri))
 
         assert isinstance(dataset.inSeries, URIRef) is True
@@ -147,7 +157,7 @@ class TestDataset:
         assert dataset.tainted is True
 
         # Property set as an incompatible data type
-        dataset = Dataset()
+        dataset = testing_class()
 
         with pytest.raises(TypeError):
             dataset.inSeries = 15

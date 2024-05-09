@@ -1,7 +1,12 @@
+# pylint: disable=unidiomatic-typecheck,redefined-outer-name
+# pylint: disable=missing-module-docstring,missing-class-docstring
+# pylint: disable=missing-function-docstring
 import datetime
-import pytest
-from rdflib import Literal, URIRef, BNode
 import uuid
+
+import pytest
+
+from rdflib import Literal, URIRef, BNode
 
 import fdp
 from fdp.resource import Resource
@@ -14,69 +19,74 @@ class TestResource:
     license_url = 'https://creativecommons.org/publicdomain/zero/1.0/'
 
     ###########################################################################
-    def test_resource_set_iri(self):
+    @pytest.fixture
+    def testing_class(self):
+        """Provides the class instance to test."""
+        return Resource
+
+    def test_set_iri(self, testing_class):
         """Checks the Resource's IRI setter/getter."""
 
         # Property not set
-        resource = Resource(iri=None)
+        resource = testing_class(iri=None)
         assert type(resource.iri) is BNode
 
         # Property set as a str
-        resource = Resource(iri='A string IRI')
+        resource = testing_class(iri='A string IRI')
         assert type(resource.iri) is URIRef
         assert resource.iri == URIRef('A string IRI')
 
         # Property set as a URIRef
-        resource = Resource(iri=URIRef('A string IRI'))
+        resource = testing_class(iri=URIRef('A string IRI'))
         assert type(resource.iri) is URIRef
         assert resource.iri == URIRef('A string IRI')
 
         # Property set as a BNode
-        resource = Resource(iri=BNode())
+        resource = testing_class(iri=BNode())
         assert type(resource.iri) is BNode
 
         # Property set as a UUID
         _uuid = uuid.uuid1()
-        resource = Resource(uuid=_uuid)
+        resource = testing_class(uuid=_uuid)
         assert type(resource.iri) is URIRef
         assert resource.iri == URIRef(f'http://127.0.0.1/resource/{_uuid}')
 
-    def test_resource_set_creator_property(self):
+    def test_set_creator_property(self, testing_class):
         """Checks the Resource's creator property setter/getter."""
 
         # Property not set
-        resource = Resource()
+        resource = testing_class()
         assert resource.creator is None
         assert resource.tainted is False
 
         # Property set as a str
-        resource = Resource()
+        resource = testing_class()
         resource.creator = "A Creator"
         assert type(resource.creator) is FOAFAgent
         assert resource.creator.name == "A Creator"
         assert resource.tainted is True
 
         # Property set as a Group
-        resource = Resource()
+        resource = testing_class()
         resource.creator = FOAFGroup()
         resource.creator.name = "A Creator Group"
         resource.creator.homepage = "A Creator Group Homepage"
-        assert len(resource.creator.members) == 0
+        assert resource.creator.member is None
 
         resource.creator.add_member(FOAFPerson(name="A Creator Member"))
         assert type(resource.creator) is FOAFGroup
         assert resource.creator.name == "A Creator Group"
         assert resource.creator.homepage == ("A Creator Group "
                                              "Homepage")
-        assert len(resource.creator.members) == 1
-        for _iri, _member in resource.creator.members.items():
+        assert len(resource.creator.member) == 1
+        for _iri, _member in resource.creator.member.items():
             assert type(_member) is FOAFPerson
             assert _member.name == "A Creator Member"
 
         assert resource.tainted is True
 
         # Property set as an Organization
-        resource = Resource()
+        resource = testing_class()
         resource.creator = FOAFOrganization()
         resource.creator.name = "A Creator Organization"
         resource.creator.homepage = "A Creator Organization Homepage"
@@ -85,138 +95,138 @@ class TestResource:
                                              "Homepage")
 
         # Property set as an incompatible data type
-        resource = Resource()
+        resource = testing_class()
 
         with pytest.raises(TypeError):
             resource.creator = 15
         assert resource.creator is None
         assert resource.tainted is False
 
-    def test_resource_set_description_property(self):
+    def test_set_description_property(self, testing_class):
         """Checks the Resource's description property setter/getter."""
 
         # Property not set
-        resource = Resource()
+        resource = testing_class()
         assert resource.description is None
         assert resource.tainted is False
 
         # Property set as a str
-        resource = Resource()
+        resource = testing_class()
         resource.description = 'A string description'
         assert type(resource.description) is str
         assert resource.description == 'A string description'
         assert resource.tainted is True
 
         # Property set as a Literal
-        resource = Resource()
+        resource = testing_class()
         resource.description = Literal('A string description')
         assert type(resource.description) is str
         assert resource.description == 'A string description'
         assert resource.tainted is True
 
         # Property set as an incompatible data type
-        resource = Resource()
+        resource = testing_class()
 
         with pytest.raises(TypeError):
             resource.description = 15
         assert resource.tainted is False
 
-    def test_resource_set_issued_property(self):
+    def test_set_issued_property(self, testing_class):
         """Checks the Resource's issued property setter/getter."""
 
         # Property not set
-        resource = Resource()
+        resource = testing_class()
         assert resource.issued is None
         assert resource.tainted is False
 
         # Property set as a str
-        resource = Resource()
+        resource = testing_class()
         resource.issued = '2024-04-03'
         assert type(resource.issued) is datetime.datetime
         assert resource.issued == datetime.datetime.fromisoformat('2024-04-03')
         assert resource.tainted is True
 
         # Property set as a datetime
-        resource = Resource()
+        resource = testing_class()
         resource.issued = datetime.datetime.fromisoformat('2024-04-03')
         assert type(resource.issued) is datetime.datetime
         assert resource.issued == datetime.datetime.fromisoformat('2024-04-03')
         assert resource.tainted is True
 
         # Property set as an incompatible data type
-        resource = Resource()
+        resource = testing_class()
 
         with pytest.raises(TypeError):
             resource.issued = 15
         assert resource.issued is None
         assert resource.tainted is False
 
-    def test_resource_set_license_property(self):
+    def test_set_license_property(self, testing_class):
         """Checks the Resource's license property setter/getter."""
 
         # Property not set
-        resource = Resource()
+        resource = testing_class()
         assert resource.license is None
         assert resource.tainted is False
 
         # Property set as a str
-        resource = Resource()
+        resource = testing_class()
         resource.license = self.license_url
         assert type(resource.license) is str
         assert resource.license == self.license_url
         assert resource.tainted is True
 
         # Property set as an URIRef
-        resource = Resource()
+        resource = testing_class()
         resource.license = URIRef(self.license_url)
         assert type(resource.license) is str
         assert resource.license == self.license_url
         assert resource.tainted is True
 
         # Property set as an incompatible data type
-        resource = Resource()
+        resource = testing_class()
 
         with pytest.raises(TypeError):
             resource.license = 15
         assert resource.license is None
         assert resource.tainted is False
 
-    def test_resource_set_publisher_property(self):
+    def test_set_publisher_property(self, testing_class):
         """Checks the Resource's publisher property setter/getter."""
 
         # Property not set
-        resource = Resource()
+        resource = testing_class()
         assert resource.publisher is None
         assert resource.tainted is False
 
         # Property set as a str
-        resource = Resource()
+        resource = testing_class()
         resource.publisher = "A Publisher"
         assert type(resource.publisher) is FOAFAgent
         assert resource.publisher.name == "A Publisher"
         assert resource.tainted is True
 
         # Property set as a Group
-        resource = Resource()
+        resource = testing_class()
         resource.publisher = FOAFGroup()
         resource.publisher.name = "A Publisher Group"
         resource.publisher.homepage = "A Publisher Group Homepage"
-        assert len(resource.publisher.members) == 0
+        assert resource.publisher.member is None
 
         resource.publisher.add_member(FOAFPerson(name="A Publisher Member"))
         assert type(resource.publisher) is FOAFGroup
         assert resource.publisher.name == "A Publisher Group"
         assert resource.publisher.homepage == ("A Publisher Group "
                                                "Homepage")
-        assert len(resource.publisher.members) == 1
-        for _iri, _member in resource.publisher.members.items():
+        assert len(resource.publisher.member) == 1
+        for _iri, _member in resource.publisher.member.items():
             assert type(_member) is FOAFPerson
             assert _member.name == "A Publisher Member"
 
         assert resource.tainted is True
 
         # Property set as an Organization
-        resource = Resource()
+        resource = testing_class()
         resource.publisher = FOAFOrganization()
         resource.publisher.name = "A Publisher Organization"
         resource.publisher.homepage = "A Publisher Organization Homepage"
@@ -225,73 +235,73 @@ class TestResource:
                                                "Homepage")
 
         # Property set as an incompatible data type
-        resource = Resource()
+        resource = testing_class()
 
         with pytest.raises(TypeError):
             resource.publisher = 15
         assert resource.publisher is None
         assert resource.tainted is False
 
-    def test_resource_set_title_property(self):
+    def test_set_title_property(self, testing_class):
         """Checks the Resource's title property setter/getter."""
 
         # Property not set
-        resource = Resource()
+        resource = testing_class()
         assert resource.title is None
         assert resource.tainted is False
 
         # Property set as a str
-        resource = Resource()
+        resource = testing_class()
         resource.title = 'A string title'
         assert type(resource.title) is str
         assert resource.title == 'A string title'
         assert resource.tainted is True
 
         # Property set as a Literal
-        resource = Resource()
+        resource = testing_class()
         resource.title = Literal('A string title')
         assert type(resource.title) is str
         assert resource.title == 'A string title'
         assert resource.tainted is True
 
-        resource = Resource()
+        resource = testing_class()
 
         # Property set as an incompatible data type
         with pytest.raises(TypeError):
             resource.title = 15
         assert resource.tainted is False
 
-    def test_resource_set_version_property(self):
+    def test_set_version_property(self, testing_class):
         """Checks the Resource's version property setter/getter."""
 
         # Property not set
-        resource = Resource()
+        resource = testing_class()
         assert resource.version is None
         assert resource.tainted is False
 
         # Property set as a str
-        resource = Resource()
+        resource = testing_class()
         resource.version = self.version_string
         assert type(resource.version) is fdp.version.Version
         assert resource.version == fdp.version.Version(self.version_string)
         assert resource.tainted is True
 
         # Property set as a Tuple
-        resource = Resource()
+        resource = testing_class()
         resource.version = self.version_tuple
         assert type(resource.version) is fdp.version.Version
         assert resource.version == fdp.version.Version(self.version_tuple)
         assert resource.tainted is True
 
         # Property set as a Version
-        resource = Resource()
+        resource = testing_class()
         resource.version = fdp.version.Version(self.version_string)
         assert type(resource.version) is fdp.version.Version
         assert resource.version == fdp.version.Version(self.version_string)
         assert resource.tainted is True
 
         # Property set as a single int
-        resource = Resource()
+        resource = testing_class()
 
         resource.version = 15
         assert type(resource.version) is fdp.version.Version
@@ -299,13 +309,13 @@ class TestResource:
         assert resource.tainted is True
 
         # Property set as an incompatible data type
-        resource = Resource()
+        resource = testing_class()
         with pytest.raises(TypeError):
             resource.version = [1, 2, 3]
         assert resource.tainted is False
 
         # Property set with setter/getter/reset
-        resource = Resource()
+        resource = testing_class()
 
         resource.version = fdp.version.Version()
 
