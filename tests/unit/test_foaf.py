@@ -86,17 +86,17 @@ class TestFOAF:
         foaf_person_1.name = "Mario Rossi"
 
         foaf_org.add_member(foaf_person_1)
-        assert len(foaf_org.members) == 1
+        assert len(foaf_org.member) == 1
 
         # tests IRI duplication
         foaf_org.add_member(foaf_person_1)
-        assert len(foaf_org.members) == 1
+        assert len(foaf_org.member) == 1
 
         foaf_person_2 = FOAFPerson()
         foaf_person_2.name = "Paolo Bianchi"
         foaf_person_2.homepage == "http://www.example_bianchi.com"
         foaf_org.add_member(foaf_person_2)
-        assert len(foaf_org.members) == 2
+        assert len(foaf_org.member) == 2
 
     def test_Group_members_property(self):
         foaf_org = FOAFGroup()
@@ -112,7 +112,7 @@ class TestFOAF:
         foaf_person_2.homepage == "http://www.example_bianchi.com"
         foaf_org.add_member(foaf_person_2)
 
-        for foaf_member_iri, foaf_member_obj in foaf_org.members.items():
+        for foaf_member_iri, foaf_member_obj in foaf_org.member.items():
             assert foaf_member_iri in [foaf_person_1.iri, foaf_person_2.iri]
             assert type(foaf_member_obj) is FOAFPerson
 
@@ -176,17 +176,17 @@ class TestFOAF:
         foaf_person_1.name = "Mario Rossi"
 
         foaf_org.add_member(foaf_person_1)
-        assert len(foaf_org.members) == 1
+        assert len(foaf_org.member) == 1
 
         # tests IRI duplication
         foaf_org.add_member(foaf_person_1)
-        assert len(foaf_org.members) == 1
+        assert len(foaf_org.member) == 1
 
         foaf_person_2 = FOAFPerson()
         foaf_person_2.name = "Paolo Bianchi"
         foaf_person_2.homepage == "http://www.example_bianchi.com"
         foaf_org.add_member(foaf_person_2)
-        assert len(foaf_org.members) == 2
+        assert len(foaf_org.member) == 2
 
     def test_Organization_members_property(self):
         foaf_org = FOAFOrganization()
@@ -202,7 +202,7 @@ class TestFOAF:
         foaf_person_2.homepage == "http://www.example_bianchi.com"
         foaf_org.add_member(foaf_person_2)
 
-        for foaf_member_iri, foaf_member_obj in foaf_org.members.items():
+        for foaf_member_iri, foaf_member_obj in foaf_org.member.items():
             assert foaf_member_iri in [foaf_person_1.iri, foaf_person_2.iri]
             assert type(foaf_member_obj) is FOAFPerson
 
