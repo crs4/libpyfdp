@@ -1,14 +1,18 @@
+# pylint: disable=missing-module-docstring
+# pylint: disable=unidiomatic-typecheck,too-many-instance-attributes
+
 import datetime
 
-from rdflib import Graph, URIRef, Literal, BNode, IdentifiedNode
+from rdflib import Graph, URIRef, BNode, IdentifiedNode
 from rdflib.namespace import DCAT, DCTERMS, FOAF, RDF  # , XSD, SKOS
 
 import fdp.fairdatapoint
+from fdp.resource import Resource
 import fdp.version
 from .base import InstanceOverrideError
 
 
-class Catalog(object):
+class Catalog(Resource):
     """Class representing a DCATv3 Catalog.
 
     :var uuid: the uuid that is assigned by the Fair Data Point
@@ -20,6 +24,8 @@ class Catalog(object):
 
     def __init__(self, fair_data_point: fdp.fairdatapoint.FairDataPoint = None,
                  iri: str = None, uuid: str = None):
+        super().__init__(fair_data_point, iri, uuid)
+
         self._uuid = uuid
         self._fair_data_point = fair_data_point or None
 
@@ -38,30 +44,10 @@ class Catalog(object):
 
         self._tainted = False
 
-        self._creator = None
-        self._description = None
-        self._homepage = None
-        self._issued = None
-        self._license = None
-        self._publisher = None
-        self._title = None
-        self._version = fdp.version.Version()
-
-        self._rdf = Graph()
-
-        self._rdf.bind("dcat", DCAT)
-        self._rdf.bind("dcterms", DCTERMS)
-        self._rdf.bind("foaf", FOAF)
-
         self._rdf.add((
             self._iri,
             RDF.type,
             DCAT.Catalog))
-
-        self._rdf.add((
-            self._iri,
-            RDF.type,
-            DCAT.Resource))
 
         if self._fair_data_point:
             self._rdf.add((
@@ -70,174 +56,10 @@ class Catalog(object):
                 URIRef(self._fair_data_point.url)))
 
     ###########################################################################
-    # DCATv3 Class properties                                                 #
-    ###########################################################################
-    @property
-    def creator(self):
-        """The ``dcterms:creator`` property."""
-        return self._creator
-
-    # XXX if creator is a list it must be a Group
-    # while a str should be used for Person
-    @creator.setter
-    def creator(self, creator: str or list):
-        self._creator = creator
-
-        _cc = BNode()
-        self._rdf.add((URIRef(self._iri), DCTERMS.creator, _cc))
-        self._rdf.add((_cc, RDF.type, FOAF.Group))
-
-        _ccm = BNode()
-        self._rdf.add((_cc, FOAF.member, _ccm))
-        self._rdf.add((_ccm, RDF.type, FOAF.Person))
-
-        if isinstance(self._creator, list):
-            for _c in self._creator:
-                if isinstance(_c, str):
-                    self._rdf.add((_ccm, FOAF.name, Literal(_c)))
-        elif isinstance(self._creator, str):
-            self._rdf.add((_ccm, FOAF.name, Literal(self._creator)))
-
-        self._tainted = True
-
-    @property
-    def description(self):
-        """The ``dcterms:description`` property."""
-        return self._description
-
-    @description.setter
-    def description(self, description: str):
-        self._description = description
-        self._rdf.add((
-            URIRef(self._iri),
-            DCTERMS.description,
-            Literal(self._description)))
-
-        self._tainted = True
-
-    @property
-    def homepage(self):
-        """The ``foaf:homepage`` property."""
-        return self._homepage
-
-    @homepage.setter
-    def homepage(self, homepage: str):
-        self._homepage = homepage
-        self._rdf.add((
-            URIRef(self._iri),
-            FOAF.homepage,
-            URIRef(homepage)))
-
-        self._tainted = True
-
-    @property
-    def issued(self):
-        """ The ``dcterms:issued`` property."""
-        return self._issued
-
-    @issued.setter
-    def issued(self, issued: datetime.datetime or str):
-        if isinstance(issued, datetime.datetime):
-            self._issued = issued
-        elif isinstance(issued, str):
-            self._issued = datetime.strptime(issued, '%Y-%m-%dT%H:%M:%S%z')
-        else:
-            raise ValueError(("issue property must be a datetime.datetime "
-                              "class instance or a string in the "
-                              "format\"YYYY-MM-DDTHH:MM:SSTZ\"."))
-
-        self._rdf.add((URIRef(self._iri), DCTERMS.issued,
-                       Literal(self._issued)))
-
-        self._tainted = True
-
-    @property
-    def license(self):
-        """The ``dcterms:license`` property."""
-        return self._license
-
-    @license.setter
-    def license(self, license: str):
-        self._license = license
-        self._rdf.add((
-            URIRef(self._iri),
-            DCTERMS.license,
-            URIRef(self._license)))
-
-        self._tainted = True
-
-    @property
-    def publisher(self):
-        """The ``dcterms:publisher`` property."""
-        return self._publisher
-
-    @publisher.setter
-    def publisher(self, publisher: str or dict or fdp.FOAFAgent):
-        if isinstance(publisher, str):
-            self._publisher = fdp.foaf.FOAFAgent(dictionary={
-                'type': 'Person',
-                'name': publisher
-            })
-            self._rdf += self._publisher.rdf
-            self._tainted = True
-        elif isinstance(publisher, fdp.foaf.FOAFAgent):
-            self._publisher = publisher
-            self._rdf += self._publisher.rdf
-            self._tainted = True
-        elif isinstance(publisher, dict):
-            self._publisher = fdp.foaf.FOAFAgent(dictionary=publisher)
-            self._rdf += self._publisher.graph
-            self._rdf.add((URIRef(self._iri), DCTERMS.publisher,
-                           self._publisher.agent))
-            self._tainted = True
-        else:
-            raise ValueError(("publisher must be a FOAFAgent's class instance "
-                              "or a string in the format or a dictionary."))
-        self._rdf.add((URIRef(self._iri), DCTERMS.publisher,
-                       self._publisher.iri))
-
-    @property
-    def title(self):
-        """The ``dcterms:title`` property."""
-        return self._title
-
-    @title.setter
-    def title(self, title: str):
-        self._title = title
-        self._rdf.add((
-            URIRef(self._iri),
-            DCTERMS.title,
-            Literal(self._title)))
-
-        self._tainted = True
-
-    @property
-    def version(self):
-        """The ``dcat:version`` property."""
-        return self._version
-
-    @version.setter
-    def version(self, version: str or fdp.version.Version or int):
-        if isinstance(version, str):
-            self._version = fdp.version.Version(version=version)
-        elif isinstance(version, fdp.version.Version):
-            self._version = version
-        elif isinstance(version, int):
-            self._version = fdp.version.Version(
-                major=version, minor=0, patch=0)
-        else:
-            raise ValueError("version must be a Version's class instance or a "
-                             "string in the format \"major.minor.patch\", "
-                             "e.g. \"1.0.0\".")
-        self._rdf.add((
-            URIRef(self._iri),
-            DCAT.version,
-            Literal(self._version.as_str())))
-
-        self._tainted = True
-
+    # Catalog DCATv3 Class ispecific properties                               #
     ###########################################################################
 
+    ###########################################################################
     @property
     def fair_data_point(self):
         """The ``dcterms:isPartOf`` (Catalog's Fair Data Point) property."""
@@ -258,11 +80,6 @@ class Catalog(object):
             URIRef(self._fair_data_point.url)))
 
     @property
-    def iri(self):
-        """The iri of the Catalog instance."""
-        return self._iri
-
-    @property
     def properties(self):
         """The DCATv3 Catalog class properties available.
 
@@ -270,25 +87,6 @@ class Catalog(object):
         :rtype: list of str
         """
         return self._PROPERTIES
-
-    @property
-    def rest_operator(self) -> str:
-        """The rest_operator."""
-        return self._fair_data_point._rest_operator
-
-    @property
-    def uuid(self):
-        """The uuid assigned to the Catalog instance by the Fair Data Point."""
-        return self._uuid
-
-    def rdf(self) -> str:
-        """Returns the string representing the DCATv3 Catalog instance in
-        rdf/turtle format.
-
-        :returns: the rdf/turtle representation of the Catalog instance.
-        :rtype: str
-        """
-        return self._rdf.serialize()
 
     def read(self, drafts: bool = False, override: bool = False):
         """Populates the instance attributes with data read from the Fair Data
@@ -445,7 +243,7 @@ class Catalog(object):
         if self._uuid is None or allow_duplicates:
             r = self._fair_data_point._rest_operator.post('catalog',
                                                           headers=headers,
-                                                          payload=self.rdf)
+                                                          payload=self._rdf)
             _rdf = Graph().parse(data=r['content'])
             self._uuid = list(
                 _rdf.objects(None, DCTERMS.identifier, unique=True))[0]
@@ -467,12 +265,6 @@ class Catalog(object):
         :rtype: dict
         """
         return {_p: getattr(self, _p) for _p in self._PROPERTIES}
-
-    @property
-    def tainted(self) -> bool:
-        """Whether the instance has been modified after creation/sync with the
-        Fair Data Point."""
-        return self._tainted
 
     def __str__(self):
         return (f"<Catalog uuid={self._uuid}, title=\'{self._title}\', "
