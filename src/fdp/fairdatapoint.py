@@ -1,14 +1,20 @@
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-class-docstring,missing-function-docstring
+# pylint: disable=unidiomatic-typecheck,too-many-instance-attributes
+import warnings
+
 import fdp.rest
 
 from rdflib import Graph, Namespace
 
-import warnings
 warnings.filterwarnings("ignore")
 
 LDP = Namespace("http://www.w3.org/ns/ldp#")
 
 
-class FairDataPoint(object):
+class FairDataPoint():
+    """Class representing a Fair Data Point.
+    """
     def __init__(self, url: str = 'http:/127.0.0.1', token: str = None):
         self._url = url
         self._rest_operator = fdp.rest.RestOperator(self._url, token)
@@ -44,10 +50,17 @@ class FairDataPoint(object):
 
         for _uuid, _iri in _uuids.items():
             _c = fdp.catalog.Catalog(self, _iri)
-            _c.read()
+            _c.read()                               # pylint: disable=no-member
             _uuids[_uuid] = _c
 
         return _uuids
 
     def __str__(self):
         return f'<Fair Data Point client pointing to {self._url}>'
+
+    def write(self, path: str, payload: str, headers: dict or None):
+        r = self._rest_operator.post(path,
+                                     headers=headers,
+                                     payload=payload)
+
+        return r

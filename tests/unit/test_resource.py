@@ -49,7 +49,8 @@ class TestResource:
         _uuid = uuid.uuid1()
         resource = testing_class(uuid=_uuid)
         assert type(resource.iri) is URIRef
-        assert resource.iri == URIRef(f'http://127.0.0.1/resource/{_uuid}')
+        assert resource.iri == URIRef(
+            f'http://127.0.0.1/{testing_class.URL_PATH}/{_uuid}')
 
     def test_set_creator_property(self, testing_class):
         """Checks the Resource's creator property setter/getter."""

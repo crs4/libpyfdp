@@ -66,7 +66,7 @@ class TestDistribution:
 
         # Property set as a Literal
         distribution = Distribution()
-        distribution.downloadURL = Literal(self.download_url)
+        distribution.downloadURL = URIRef(self.download_url)
         assert type(distribution.downloadURL) is str
         assert distribution.downloadURL == self.download_url
 
