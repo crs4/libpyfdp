@@ -198,18 +198,18 @@ class Distribution():
         return self._downloadURL
 
     @downloadURL.setter
-    def downloadURL(self, downloadURL: str or Literal):
+    def downloadURL(self, downloadURL: str or URIRef):
         if type(downloadURL) is str:
             self._downloadURL = downloadURL
-        elif type(downloadURL) is Literal:
+        elif type(downloadURL) is URIRef:
             self._downloadURL = str(downloadURL)
         else:
-            raise TypeError("downloadURL property must be a str or a Literal.")
+            raise TypeError("downloadURL property must be a str or a URIRef.")
 
         self._rdf.add((
             self._iri,
             DCAT.downloadURL,
-            Literal(self._downloadURL)))
+            URIRef(self._downloadURL)))
 
         self._tainted = True
 
