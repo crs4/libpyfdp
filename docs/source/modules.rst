@@ -7,3 +7,4 @@ fdp
    fdp
    catalog
    fairdatapoint
+   resourcedefinition
