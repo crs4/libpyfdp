@@ -1,10 +1,11 @@
 # pylint: disable=unidiomatic-typecheck,invalid-name,missing-module-docstring
 # pylint: disable=too-many-instance-attributes
 
-from rdflib import URIRef, Literal, Graph, BNode
+from rdflib import URIRef, Literal, Graph, BNode, IdentifiedNode
 from rdflib.namespace import DCTERMS, DCAT, XSD, RDF, Namespace
 
 import fdp.fairdatapoint
+from fdp.resource import Resource
 
 SPDX = Namespace("http://spdx.org/rdf/terms#")
 
@@ -119,20 +120,25 @@ class Checksum():
         self._tainted = True
 
 
-class Distribution():
+class Distribution(Resource):
     """Class representing a DCATv3 dcat:Distribution.
 
     dcat:Distribution represents an accessible form of a dataset such as a
     downloadable file.
     """
 
-    _DISTRIBUTION_PROPERTIES = ['checksum', 'downloadURL', 'license',
-                                'mediaType', 'compressFormat', 'byteSize']
+    URL_PATH = 'distribution'
+
+    _DISTRIBUTION_PROPERTIES = ['checksum', 'downloadURL',
+                                'mediaType', 'compressFormat', 'byteSize',
+                                'isPartOf']
 
     __frozen = False
 
     def __init__(self, fair_data_point: fdp.fairdatapoint.FairDataPoint = None,
                  iri: str = None, uuid: str = None):
+        super().__init__(fair_data_point)
+
         for _p in self._DISTRIBUTION_PROPERTIES:
             setattr(Distribution, f'_{_p}', None)
 
@@ -143,7 +149,6 @@ class Distribution():
         self._rdf.bind("spdx", SPDX)
 
         self._uuid = uuid
-        self._fair_data_point = fair_data_point or 'http://127.0.0.1'
 
         if iri is not None:
             # if type(iri) is str:
@@ -236,34 +241,6 @@ class Distribution():
         self._tainted = True
 
     @property
-    def license(self):
-        """ The ``dcterms:license`` property.
-
-        .. note::
-            must follow recommendation from:
-            https://joinup.ec.europa.eu/release/dcat-ap-how-refer-licence-documents-and-licence-uris
-        """
-        return self._license
-
-    @license.setter
-    def license(self, license_uri: str):
-        if type(license_uri) is str:
-            self._license = license_uri
-        elif type(license_uri) is URIRef:
-            self._license = str(license_uri)
-        else:
-            raise TypeError(("license property must be an URIRef "
-                             "class instance or a str."))
-
-        self._rdf.add((
-            self._iri,
-            DCTERMS.license,
-            Literal(self._license)
-        ))
-
-        self._tainted = True
-
-    @property
     def mediaType(self):
         """The ``dcat:mediaType`` property."""
         return self._mediaType
@@ -330,3 +307,28 @@ class Distribution():
         ))
 
         self._tainted = True
+
+    @property
+    def isPartOf(self) -> dict:
+        """The isPartOf propery of the Dataset."""
+        return self._isPartOf
+
+    @isPartOf.setter
+    def isPartOf(self, is_part_of: str or IdentifiedNode):
+        if type(is_part_of) is str:
+            self._isPartOf = URIRef(is_part_of)
+
+            self._tainted = True
+        elif isinstance(is_part_of, IdentifiedNode):
+            self._isPartOf = is_part_of
+
+            self._tainted = True
+        else:
+            raise TypeError(("isPartOf must be a str or IdentifiedNode's "
+                             "class instance (BNode or URIRef)"))
+
+        self._rdf.add((
+            self._iri,
+            DCTERMS.isPartOf,
+            self._isPartOf
+        ))

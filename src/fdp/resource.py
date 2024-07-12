@@ -1,24 +1,33 @@
+# pylint: disable=missing-module-docstring
+# pylint: disable=unidiomatic-typecheck,too-many-instance-attributes
 import datetime
 
 from rdflib import URIRef, Literal, Graph, BNode, IdentifiedNode
 from rdflib.namespace import DCTERMS, DCAT, Namespace, RDF
 
 import fdp.fairdatapoint
+from fdp.base import FairDataPointItem
 
 DQV = Namespace("http://www.w3.org/ns/dqv#")
 SPDX = Namespace("http://spdx.org/rdf/terms#")
 
 
-class Resource():
+class Resource(FairDataPointItem):
     """Class representing a DCATv3 Cataloged Resource
     """
 
+    URL_PATH = 'resource'
+    CONTENT_TYPE = 'text/turtle'
+
     _RESOURCES_PROPERTIES = ['creator', 'description', 'issued', 'license',
-                             'publisher', 'title', 'version']
+                             'publisher', 'theme', 'title', 'version']
+
     __frozen = False
 
     def __init__(self, fair_data_point: fdp.fairdatapoint.FairDataPoint = None,
                  iri: str = None, uuid: str = None):
+        super().__init__(fair_data_point)
+
         for _p in self._RESOURCES_PROPERTIES:
             setattr(Resource, f'_{_p}', None)
 
@@ -30,7 +39,6 @@ class Resource():
         self._rdf.bind("spdx", SPDX)
 
         self._uuid = uuid
-        self._fair_data_point = fair_data_point or 'http://127.0.0.1'
 
         if iri is not None:
             if type(iri) is str:
@@ -42,7 +50,7 @@ class Resource():
                                  '"iri" argument'))
         elif self._uuid is not None:
             self._iri = URIRef(
-                f'{self._fair_data_point}/resource/{self._uuid}')
+                f'{self._fair_data_point.url}/resource/{self._uuid}')
         else:
             self._iri = BNode()
 
@@ -57,7 +65,7 @@ class Resource():
 
     def __setattr__(self, key, value):
         if self.__frozen and not hasattr(self, key):
-            raise TypeError("Property '%s' is not valid." % key)
+            raise TypeError(f"Property '{key}' is not valid.")
         super().__setattr__(key, value)
 
     @property
@@ -77,7 +85,7 @@ class Resource():
         return self._creator
 
     @creator.setter
-    def creator(self, creator: str or dict or fdp.FOAFAgent):
+    def creator(self, creator: str or dict or fdp.foaf.FOAFAgent):
         if isinstance(creator, str):
             self._creator = fdp.foaf.FOAFAgent()
             self._creator.name = creator
@@ -167,7 +175,7 @@ class Resource():
         self._rdf.add((
             self._iri,
             DCTERMS.license,
-            Literal(self._license)
+            URIRef(self._license)
         ))
 
         self._tainted = True
@@ -178,7 +186,7 @@ class Resource():
         return self._publisher
 
     @publisher.setter
-    def publisher(self, publisher: str or dict or fdp.FOAFAgent):
+    def publisher(self, publisher: str or dict or fdp.foaf.FOAFAgent):
         if isinstance(publisher, str):
             self._publisher = fdp.foaf.FOAFAgent()
             self._publisher.name = publisher
@@ -201,6 +209,34 @@ class Resource():
             DCTERMS.publisher,
             self._publisher.iri
         ))
+
+    @property
+    def theme(self):
+        """ The ``dcat:theme`` property.
+
+        .. note::
+            a list of themes can be found here:
+            https://inspire.ec.europa.eu/theme
+        """
+        return self._theme
+
+    @theme.setter
+    def theme(self, theme_uri: str):
+        if type(theme_uri) is str:
+            self._theme = theme_uri
+        elif type(theme_uri) is URIRef:
+            self._theme = str(theme_uri)
+        else:
+            raise TypeError(("theme property must be an URIRef "
+                             "class instance or a str."))
+
+        self._rdf.add((
+            self._iri,
+            DCAT.theme,
+            URIRef(self._theme)
+        ))
+
+        self._tainted = True
 
     @property
     def title(self):
@@ -249,3 +285,8 @@ class Resource():
         ))
 
         self._tainted = True
+
+    @property
+    def rdf(self) -> str:
+        """The rdf graph of the Resource instance."""
+        return self._rdf

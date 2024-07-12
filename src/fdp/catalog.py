@@ -61,25 +61,6 @@ class Catalog(Dataset):
 
     ###########################################################################
     @property
-    def fair_data_point(self):
-        """The ``dcterms:isPartOf`` (Catalog's Fair Data Point) property."""
-        return self._fair_data_point
-
-    @fair_data_point.setter
-    def fair_data_point(self, fair_data_point: str or
-                        fdp.fairdatapoint.FairDataPoint):
-        if isinstance(fair_data_point, str):
-            self._fair_data_point = fdp.fairdatapoint.FairDataPoint(
-                fair_data_point)
-        elif isinstance(fair_data_point, fdp.fairdatapoint.FairDataPoint):
-            self._fair_data_point = fair_data_point
-
-        self._rdf.add((
-            URIRef(self._iri),
-            DCTERMS.isPartOf,
-            URIRef(self._fair_data_point.url)))
-
-    @property
     def properties(self):
         """The DCATv3 Catalog class properties available.
 

@@ -17,6 +17,7 @@ class TestResource:
     version_tuple = (1, 0, 0)
     version_string = '1.0.0'
     license_url = 'https://creativecommons.org/publicdomain/zero/1.0/'
+    theme_url = 'https://inspire.ec.europa.eu/theme/pf'
 
     ###########################################################################
     @pytest.fixture
@@ -241,6 +242,36 @@ class TestResource:
         with pytest.raises(TypeError):
             resource.publisher = 15
         assert resource.publisher is None
+        assert resource.tainted is False
+
+    def test_set_theme_property(self, testing_class):
+        """Checks the Resource's theme property setter/getter."""
+
+        # Property not set
+        resource = testing_class()
+        assert resource.theme is None
+        assert resource.tainted is False
+
+        # Property set as a str
+        resource = testing_class()
+        resource.theme = self.theme_url
+        assert type(resource.theme) is str
+        assert resource.theme == self.theme_url
+        assert resource.tainted is True
+
+        # Property set as an URIRef
+        resource = testing_class()
+        resource.theme = URIRef(self.theme_url)
+        assert type(resource.theme) is str
+        assert resource.theme == self.theme_url
+        assert resource.tainted is True
+
+        # Property set as an incompatible data type
+        resource = testing_class()
+
+        with pytest.raises(TypeError):
+            resource.theme = 15
+        assert resource.theme is None
         assert resource.tainted is False
 
     def test_set_title_property(self, testing_class):

@@ -33,7 +33,10 @@ class Dataset(Resource):
     status, version, version notes, first, last, previous
     """
 
-    _DATASET_PROPERTIES = ['distribution', 'inSeries', 'temporal', 'hasQualityMeasurement']
+    URL_PATH = 'dataset'
+
+    _DATASET_PROPERTIES = ['distribution', 'inSeries', 'temporal',
+                           'hasQualityMeasurement', 'isPartOf']
 
     __frozen = False
 
@@ -55,12 +58,6 @@ class Dataset(Resource):
             RDF.type,
             DCAT.Dataset))
 
-        # if self._fair_data_point:
-        #     self._rdf.add((
-        #         self._iri,
-        #         DCTERMS.isPartOf,
-        #         URIRef(self._fair_data_point.url)))
-
     def __setattr__(self, key, value):
         if self.__frozen and not hasattr(self, key):
             raise TypeError("Property '%s' is not valid." % key)
@@ -79,13 +76,20 @@ class Dataset(Resource):
             raise TypeError((f'Type {type(distribution)} not allowed for '
                              '"distribution" argument'))
 
-        self._rdf.add((
-            self._iri,
-            DCAT.distribution,
-            distribution.iri
-        ))
+        if distribution.uuid is not None:
+            self._rdf.add((
+                self._iri,
+                DCAT.distribution,
+                distribution.uuid
+            ))
+        else:
+            self._rdf.add((
+                self._iri,
+                DCAT.distribution,
+                distribution.iri
+            ))
 
-        self._rdf += distribution.rdf
+            self._rdf += distribution.rdf
 
     @property
     def distributions(self) -> dict:
@@ -137,12 +141,37 @@ class Dataset(Resource):
             self._tainted = True
         else:
             raise TypeError(("inSeries must be a str or IdentifiedNode's "
-                             "class instance (BNode or URIRef"))
+                             "class instance (BNode or URIRef)"))
 
         self._rdf.add((
             self._iri,
             DCAT.inSeries,
             self._inSeries
+        ))
+
+    @property
+    def isPartOf(self) -> dict:
+        """The isPartOf propery of the Dataset."""
+        return self._isPartOf
+
+    @isPartOf.setter
+    def isPartOf(self, is_part_of: str or IdentifiedNode):
+        if type(is_part_of) is str:
+            self._isPartOf = URIRef(is_part_of)
+
+            self._tainted = True
+        elif isinstance(is_part_of, IdentifiedNode):
+            self._isPartOf = is_part_of
+
+            self._tainted = True
+        else:
+            raise TypeError(("isPartOf must be a str or IdentifiedNode's "
+                             "class instance (BNode or URIRef)"))
+
+        self._rdf.add((
+            self._iri,
+            DCTERMS.isPartOf,
+            self._isPartOf
         ))
 
     @property
@@ -170,25 +199,6 @@ class Dataset(Resource):
     ###########################################################################
 
     # @property
-    # def fair_data_point(self):
-    #     """The ``dcterms:isPartOf`` (Catalog's Fair Data Point) property."""
-    #     return self._fair_data_point
-
-    # @fair_data_point.setter
-    # def fair_data_point(self, fair_data_point: str or
-    #                     fdp.fairdatapoint.FairDataPoint):
-    #     if isinstance(fair_data_point, str):
-    #         self._fair_data_point = fdp.fairdatapoint.FairDataPoint(
-    #             fair_data_point)
-    #     elif isinstance(fair_data_point, fdp.fairdatapoint.FairDataPoint):
-    #         self._fair_data_point = fair_data_point
-
-    #     self._rdf.add((
-    #         URIRef(self._iri),
-    #         DCTERMS.isPartOf,
-    #         URIRef(self._fair_data_point.url)))
-
-    # @property
     # def properties(self):
     #     """The DCATv3 Catalog class properties available.
 
@@ -196,16 +206,6 @@ class Dataset(Resource):
     #     :rtype: list of str
     #     """
     #     return self._PROPERTIES
-
-    # @property
-    # def rest_operator(self) -> str:
-    #     """The rest_operator."""
-    #     return self._fair_data_point._rest_operator
-
-    # @property
-    # def uuid(self):
-    #     """The uuid assigned to the Catalog instance by the Fair Data Point."""
-    #     return self._uuid
 
     @property
     def rdf(self) -> str:
@@ -389,12 +389,6 @@ class Dataset(Resource):
         """
         return {_p: getattr(self, _p) for _p in self._DATASET_PROPERTIES}
 
-    # @property
-    # def tainted(self) -> bool:
-    #     """Whether the instance has been modified after creation/sync with the
-    #     Fair Data Point."""
-    #     return self._tainted
-
     # def __str__(self):
     #     return (f"<Catalog uuid={self._uuid}, title=\'{self._title}\', "
     #             f"version={self._version}, "
@@ -407,6 +401,8 @@ class DatasetSeries(Dataset):
     :var uuid: the uuid that is assigned by the Fair Data Point
     :vartype uuid: str
     """
+
+    URL_PATH = 'dataset-series'
 
     _DATASETSERIES_PROPERTIES = []
 
