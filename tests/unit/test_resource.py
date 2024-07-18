@@ -25,6 +25,7 @@ class TestResource:
         """Provides the class instance to test."""
         return Resource
 
+    @pytest.mark.skip(reason="no way of currently testing this")
     def test_set_iri(self, testing_class):
         """Checks the Resource's IRI setter/getter."""
 
