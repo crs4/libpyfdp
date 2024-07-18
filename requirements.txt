@@ -1,2 +1,3 @@
-rdflib
 pytest
+rdflib
+requests
