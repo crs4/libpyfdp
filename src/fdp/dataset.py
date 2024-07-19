@@ -35,21 +35,14 @@ class Dataset(Resource):
 
     URL_PATH = 'dataset'
 
-    _DATASET_PROPERTIES = ['distribution', 'inSeries', 'temporal',
-                           'hasQualityMeasurement', 'isPartOf']
-
-    __frozen = False
+    _CLASS_PROPERTIES = ['distribution', 'inSeries', 'temporal',
+                         'hasQualityMeasurement', 'isPartOf']
 
     def __init__(self, fair_data_point: fdp.fairdatapoint.FairDataPoint = None,
                  iri: str = None, uuid: str = None):
         super().__init__(fair_data_point, iri, uuid)
 
-        for _p in self._DATASET_PROPERTIES:
-            setattr(Dataset, f'_{_p}', None)
-
         self._tainted = False
-
-        self.__frozen = True
 
         self._rdf.bind("dqv", DQV)
 
@@ -57,11 +50,6 @@ class Dataset(Resource):
             self._iri,
             RDF.type,
             DCAT.Dataset))
-
-    def __setattr__(self, key, value):
-        if self.__frozen and not hasattr(self, key):
-            raise TypeError("Property '%s' is not valid." % key)
-        super().__setattr__(key, value)
 
     ###########################################################################
     # DCATv3 Class properties                                                 #
@@ -404,7 +392,7 @@ class DatasetSeries(Dataset):
 
     URL_PATH = 'dataset-series'
 
-    _DATASETSERIES_PROPERTIES = []
+    _CLASS_PROPERTIES = []
 
     __frozen = False
 
@@ -412,12 +400,7 @@ class DatasetSeries(Dataset):
                  iri: str = None, uuid: str = None):
         super().__init__(fair_data_point, iri, uuid)
 
-        for _p in self._DATASETSERIES_PROPERTIES:
-            setattr(Dataset, f'_{_p}', None)
-
         self._tainted = False
-
-        self.__frozen = True
 
         self._rdf.add((
             self._iri,

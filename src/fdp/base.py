@@ -2,8 +2,6 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring
 # pylint: disable=unidiomatic-typecheck,too-many-instance-attributes
 import fdp
-from .rest import RestOperator
-from .version import Version
 from .fairdatapoint import FairDataPoint
 
 from rdflib import Graph, URIRef
@@ -32,10 +30,44 @@ class IncompatibleClassError(RuntimeError):
 
 class FairDataPointItem():
     """Base class for all the Fair Data Point entities."""
+
+    _CLASS_PROPERTIES = []
+
+    __frozen = False
+
     def __init__(self, fair_data_point: FairDataPoint = None):
+
+        for _p in self._CLASS_PROPERTIES:
+            setattr(self.__class__, f'_{_p}', None)
+
         self._fair_data_point = (fair_data_point or
                                  FairDataPoint('http://127.0.0.1'))
+        self._rdf = None
+        self._iri = None
         self._uuid = None
+        self._tainted = False
+
+        self.__frozen = True
+
+    def __setattr__(self, key, value):
+        if self.__frozen and not hasattr(self, key):
+            raise TypeError(f"Property '{key}' is not valid.")
+        super().__setattr__(key, value)
+
+    @property
+    def tainted(self) -> bool:
+        """Whether the instance has been modified after creation/sync with the
+        Fair Data Point."""
+        return self._tainted
+
+    @property
+    def properties(self):
+        """The class properties.
+
+        :returns: a list of class properties.
+        :rtype: list of str
+        """
+        return self._CLASS_PROPERTIES
 
     # def publish(self):
     #     raise NotImplementedError(
@@ -247,5 +279,3 @@ class FairDataPointItem():
                 fair_data_point)
         elif isinstance(fair_data_point, fdp.fairdatapoint.FairDataPoint):
             self._fair_data_point = fair_data_point
-
-

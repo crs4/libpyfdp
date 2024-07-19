@@ -129,18 +129,13 @@ class Distribution(Resource):
 
     URL_PATH = 'distribution'
 
-    _DISTRIBUTION_PROPERTIES = ['checksum', 'downloadURL',
-                                'mediaType', 'compressFormat', 'byteSize',
-                                'isPartOf']
-
-    __frozen = False
+    _CLASS_PROPERTIES = ['checksum', 'downloadURL',
+                         'mediaType', 'compressFormat', 'byteSize',
+                         'isPartOf']
 
     def __init__(self, fair_data_point: fdp.fairdatapoint.FairDataPoint = None,
                  iri: str = None, uuid: str = None):
         super().__init__(fair_data_point)
-
-        for _p in self._DISTRIBUTION_PROPERTIES:
-            setattr(Distribution, f'_{_p}', None)
 
         self._rdf = Graph()
 
@@ -169,17 +164,10 @@ class Distribution(Resource):
 
         self._tainted = False
 
-        self.__frozen = True
-
         self._rdf.add((
             self._iri,
             RDF.type,
             DCAT.Distribution))
-
-    def __setattr__(self, key, value):
-        if self.__frozen and not hasattr(self, key):
-            raise TypeError(f"Property '{key}' is not valid.")
-        super().__setattr__(key, value)
 
     @property
     def iri(self):
@@ -190,12 +178,6 @@ class Distribution(Resource):
     def rdf(self):
         """The rdf graph of the Distribution instance."""
         return self._rdf
-
-    @property
-    def tainted(self) -> bool:
-        """Whether the instance has been modified after creation/sync with the
-        Fair Data Point."""
-        return self._tainted
 
     @property
     def downloadURL(self):

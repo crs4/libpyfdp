@@ -25,6 +25,13 @@ class TestResource:
         """Provides the class instance to test."""
         return Resource
 
+    def test_set_unknown_property(self, testing_class):
+        """Checks if an unknown property can be set."""
+
+        resource = testing_class()
+        with pytest.raises(TypeError):
+            resource.unknown = True
+
     @pytest.mark.skip(reason="no way of currently testing this")
     def test_set_iri(self, testing_class):
         """Checks the Resource's IRI setter/getter."""

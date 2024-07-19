@@ -21,6 +21,13 @@ class TestResourceDefinitions:
         """Provides the class instance to test."""
         return ResourceDefinition
 
+    def test_set_unknown_property(self, testing_class):
+        """Checks if an unknown property can be set."""
+
+        res_def = testing_class()
+        with pytest.raises(TypeError):
+            res_def.unknown = True
+
     def test_set_name(self, testing_class):
         """Checks the Resource Definition's name property setter/getter."""
 
@@ -40,7 +47,7 @@ class TestResourceDefinitions:
         res_def = testing_class()
 
         with pytest.raises(TypeError):
-            res_def.creator = 15
+            res_def.name = 15
         assert res_def.name is None
         assert res_def.tainted is False
 

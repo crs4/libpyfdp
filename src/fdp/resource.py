@@ -19,17 +19,12 @@ class Resource(FairDataPointItem):
     URL_PATH = 'resource'
     CONTENT_TYPE = 'text/turtle'
 
-    _RESOURCES_PROPERTIES = ['creator', 'description', 'issued', 'license',
-                             'publisher', 'theme', 'title', 'version']
-
-    __frozen = False
+    _CLASS_PROPERTIES = ['creator', 'description', 'issued', 'license',
+                         'publisher', 'theme', 'title', 'version']
 
     def __init__(self, fair_data_point: fdp.fairdatapoint.FairDataPoint = None,
                  iri: str = None, uuid: str = None):
         super().__init__(fair_data_point)
-
-        for _p in self._RESOURCES_PROPERTIES:
-            setattr(Resource, f'_{_p}', None)
 
         self._rdf = Graph()
 
@@ -56,28 +51,15 @@ class Resource(FairDataPointItem):
 
         self._tainted = False
 
-        self.__frozen = True
-
         self._rdf.add((
             self._iri,
             RDF.type,
             DCAT.Resource))
 
-    def __setattr__(self, key, value):
-        if self.__frozen and not hasattr(self, key):
-            raise TypeError(f"Property '{key}' is not valid.")
-        super().__setattr__(key, value)
-
     @property
     def iri(self):
         """The iri of the Resource instance."""
         return self._iri
-
-    @property
-    def tainted(self) -> bool:
-        """Whether the instance has been modified after creation/sync with the
-        Fair Data Point."""
-        return self._tainted
 
     @property
     def creator(self):

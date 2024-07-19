@@ -18,15 +18,12 @@ class Catalog(Dataset):
 
     URL_PATH = 'catalog'
 
-    _PROPERTIES = ['creator', 'description', 'homepage', 'issued', 'license',
-                   'publisher', 'title', 'version']
+    _CLASS_PROPERTIES = ['creator', 'description', 'homepage', 'issued',
+                         'license', 'publisher', 'title', 'version']
 
     def __init__(self, fair_data_point: fdp.fairdatapoint.FairDataPoint = None,
                  iri: str = None, uuid: str = None):
         super().__init__(fair_data_point, iri, uuid)
-
-        # self._uuid = uuid
-        # self._fair_data_point = fair_data_point or None
 
         if iri is not None:
             if type(iri) is str:
@@ -60,22 +57,13 @@ class Catalog(Dataset):
     ###########################################################################
 
     ###########################################################################
-    @property
-    def properties(self):
-        """The DCATv3 Catalog class properties available.
-
-        :returns: a list of the Catalog class properties available.
-        :rtype: list of str
-        """
-        return self._PROPERTIES
-
     def inspect(self):
         """Retrieves the value of the class properties.
 
         :return: a dictionary with the class's properties.
         :rtype: dict
         """
-        return {_p: getattr(self, _p) for _p in self._PROPERTIES}
+        return {_p: getattr(self, _p) for _p in self._CLASS_PROPERTIES}
 
     def __str__(self):
         return (f"<Catalog uuid={self._uuid}, title=\'{self._title}\', "

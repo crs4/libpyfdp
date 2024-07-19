@@ -14,34 +14,14 @@ class ResourceDefinition(FairDataPointItem):
     URL_PATH = 'resource-definitions'
     CONTENT_TYPE = 'application/json'
 
-    _RESOURCES_PROPERTIES = ['name', 'url_prefix', 'metadata_schemas',
-                             'children', 'external_links']
-
-    __frozen = False
+    _CLASS_PROPERTIES = ['name', 'url_prefix', 'metadata_schemas',
+                         'children', 'external_links']
 
     def __init__(self, fair_data_point: fdp.fairdatapoint.FairDataPoint = None,
                  uuid: str = None):
         super().__init__(fair_data_point)
 
-        for _p in self._RESOURCES_PROPERTIES:
-            setattr(ResourceDefinition, f'_{_p}', None)
-
         self._uuid = uuid
-
-        self._tainted = False
-
-        self.__frozen = True
-
-    def __setattr__(self, key, value):
-        if self.__frozen and not hasattr(self, key):
-            raise TypeError(f"Property '{key}' is not valid.")
-        super().__setattr__(key, value)
-
-    @property
-    def tainted(self) -> bool:
-        """Whether the instance has been modified after creation/sync with the
-        Fair Data Point."""
-        return self._tainted
 
     @property
     def name(self) -> str:
