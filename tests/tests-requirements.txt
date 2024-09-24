@@ -1,3 +1,4 @@
 pytest
 pytest-cov
 pytest-docker
+pytest-docker-compose-v2
