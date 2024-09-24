@@ -369,14 +369,6 @@ class Dataset(Resource):
     #     #         (f"Metadata schema \"{self.name}\" already present "
     #     #           "in the Fair Data Point."))
 
-    def inspect(self):
-        """Retrieves the value of the class properties.
-
-        :return: a dictionary with the class's properties.
-        :rtype: dict
-        """
-        return {_p: getattr(self, _p) for _p in self._DATASET_PROPERTIES}
-
     # def __str__(self):
     #     return (f"<Catalog uuid={self._uuid}, title=\'{self._title}\', "
     #             f"version={self._version}, "

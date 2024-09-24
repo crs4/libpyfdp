@@ -2,10 +2,12 @@
 # pylint: disable=unidiomatic-typecheck,too-many-instance-attributes
 # pylint: disable=invalid-name
 from __future__ import annotations
+import json
 import rdflib
 
 from fdp.fairdatapoint import FairDataPoint
 from fdp.base import FairDataPointItem
+from fdp.base import LibFDPError, SetEncoder
 
 
 class MetadataSchema(FairDataPointItem):
@@ -217,3 +219,17 @@ class MetadataSchema(FairDataPointItem):
 #         return (f"<MetadataSchema uuid={self._uuid}, name=\"{self._name}\", "
 #                 f"version={self._version}, "
 #                 "{}>".format("Tainted" if self._tainted else "NotTainted"))
+
+    def _content(self):
+        content_dict = {k: getattr(self, k) for k in self._CLASS_PROPERTIES}
+
+        return json.dumps(content_dict, cls=SetEncoder)
+
+    def create(self):
+        """Creates a new Metadata Schema."""
+        super().create()
+
+    def delete(self):
+        """Deletes a Metadata Schema from the Fair Data Point. On success, UUID
+        attribute is set to None"""
+        super().delete()

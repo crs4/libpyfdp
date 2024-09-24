@@ -3,7 +3,7 @@
 # pylint: disable=unidiomatic-typecheck,too-many-instance-attributes
 import warnings
 
-import fdp.rest
+import fdp
 
 from rdflib import Graph, Namespace
 
@@ -15,7 +15,7 @@ LDP = Namespace("http://www.w3.org/ns/ldp#")
 class FairDataPoint():
     """Class representing a Fair Data Point.
     """
-    def __init__(self, url: str = 'http:/127.0.0.1', token: str = None):
+    def __init__(self, url: str = 'http://127.0.0.1', token: str = None):
         self._url = url
         self._rest_operator = fdp.rest.RestOperator(self._url, token)
 
@@ -62,5 +62,31 @@ class FairDataPoint():
         r = self._rest_operator.post(path,
                                      headers=headers,
                                      payload=payload)
+
+        return r
+
+    def delete(self, fairdatapointitem):
+        """Deletes an instance of a Fair Data Point Item or of a derived class
+        from the Fair data Point.
+
+        :param fairdatapointitem: the item to delete
+
+        :type fairdatapointitem: FairDataPointItem or derived class
+
+        :raises NotPresentError: if the item is not present in the Fair Data
+                                 Point
+        """
+        if isinstance(fairdatapointitem, fdp.base.FairDataPointItem):
+            self._rest_operator.delete(fairdatapointitem.URL_PATH,
+                                       fairdatapointitem.uuid)
+        else:
+            raise TypeError((f'Type {type(fairdatapointitem)} not allowed for '
+                             '"delete" argument'))
+
+    def get(self, path: str, uuid: str = None):
+        if uuid:
+            r = self._rest_operator.get(f"{path}/{uuid}")
+        else:
+            r = self._rest_operator.get(path)
 
         return r

@@ -178,3 +178,43 @@ class RestOperator(object):
                 if response.headers.get('content-type') == 'application/json'
                 else response.text)
                }
+
+    def delete(self, uri: str = None, uuid: str = None,
+               raise_for_status: bool = None) -> dict:
+        """Executes a DELETE query to the Fair Data Point.
+
+        :param uri: the relative path of the resource
+        :type uri: str
+
+        :param uuid: the UUID of the instance to delete
+
+        :param raise_for_status: raise an HTTPError if the query returns an
+                               error code (>=400). Overrides the instance
+                               default.
+        :type raise_for_status: bool
+
+        :return: a dictionary ``{'code': int}``
+        :rtype: dict
+        """
+
+        default_headers = {
+            'Authorization': f'Bearer {self.token}'
+        }
+
+        actual_headers = default_headers
+
+        response = requests.request(
+            "DELETE",
+            f"{self.base_url}/{uri}/{uuid}",
+            headers=actual_headers,
+        )
+
+        self.raise_http_error(response, raise_for_status)
+
+        return {
+            'code': response.status_code
+               }
+
+    def __str__(self):
+        return (f'<Fair Data Point Rest Operator pointing to '
+                f'{self.base_url}, token="{self.token}">')
