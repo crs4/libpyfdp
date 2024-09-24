@@ -1,11 +1,27 @@
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-class-docstring,missing-function-docstring
 # pylint: disable=unidiomatic-typecheck,too-many-instance-attributes
-import fdp
-from .fairdatapoint import FairDataPoint
+from collections.abc import MutableSequence, MutableMapping
+import json
+import requests
 
-from rdflib import Graph, URIRef
-from rdflib.namespace import DCTERMS
+import fdp
+
+# from rdflib import Graph, URIRef
+# from rdflib.namespace import DCTERMS
+
+
+class SetEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, set):
+            return list(obj)
+        return json.JSONEncoder.default(self, obj)
+
+
+class LibFDPError(RuntimeError):
+    """Class for general LibFDP Errors."""
+    def __init__(self, message):
+        super().__init__(message)
 
 
 class AlreadyPresentError(RuntimeError):
@@ -14,7 +30,7 @@ class AlreadyPresentError(RuntimeError):
 
 
 class NotPresentError(RuntimeError):
-    def __init__(self, message):
+    def __init__(self, message=""):
         super().__init__(message)
 
 
@@ -32,16 +48,21 @@ class FairDataPointItem():
     """Base class for all the Fair Data Point entities."""
 
     _CLASS_PROPERTIES = []
+    _CLASS_PROPERTIES_MAPPING = {}
+    _CLASS_PROPERTIES_MAPPING_INVERTED = {}
 
     __frozen = False
 
-    def __init__(self, fair_data_point: FairDataPoint = None):
+    def __init__(self, fair_data_point: fdp.fairdatapoint.FairDataPoint = None):
+
+        self._CLASS_PROPERTIES_MAPPING_INVERTED = {
+            v: k for k, v in self._CLASS_PROPERTIES_MAPPING.items()}
 
         for _p in self._CLASS_PROPERTIES:
             setattr(self.__class__, f'_{_p}', None)
 
         self._fair_data_point = (fair_data_point or
-                                 FairDataPoint('http://127.0.0.1'))
+                                 fdp.fairdatapoint.FairDataPoint('http://127.0.0.1'))
         self._rdf = None
         self._iri = None
         self._uuid = None
@@ -73,14 +94,15 @@ class FairDataPointItem():
     #     raise NotImplementedError(
     #         "publish() method must be implemented in derived class.")
 
-    def write(self, allow_update: bool = True, allow_duplicates: bool = False):
+    def _write(self, allow_update: bool = True,
+               allow_duplicates: bool = False):
         """Writes the instance attributes to the Fair Data Point.
         :param allow_update: if true, override the instance's attribute;
         :type allow_update: bool
 
         :param allow_duplicates: write the catalog even if there are
                                   other catalogs with the same name.
-         :type allow_duplicates: bool
+        :type allow_duplicates: bool
 
         :raises AlreadyPresentError: if the catalog already exists in the Fair
                                      Data Point and allow_duplicates is not
@@ -91,175 +113,78 @@ class FairDataPointItem():
             'Content-Type': self.CONTENT_TYPE
         }
 
+        payload = self._content()
+
         response = self._fair_data_point.write(self.URL_PATH,
-                                               payload=self._rdf.serialize(),
+                                               payload=payload,
                                                headers=headers)
 
-        if self._uuid is None:
-            _rdf = Graph().parse(data=response['content'])
-            self._uuid = list(_rdf.objects(None, DCTERMS.identifier,
-                                           unique=True))[0]
-            self._uuid = URIRef(self._uuid)
+        self._uuid = response['content']['uuid']
 
-        # r = self._fair_data_point._rest_operator.post('catalog',
-        #                                               headers=headers,
-        #                                               payload=self._rdf)
-        # rdf_response = Graph().parse(data=response['content'])
+        return response['content']
 
-    #     # uuids = self.find(self._title)
-    #     # uuids = None
+    def _get(self, uuid: str):
+        element = self._fair_data_point.get(
+            self.URL_PATH, uuid=uuid)['content']
 
-    #     if self._uuid is None or allow_duplicates:
-    #         r = self._fair_data_point._rest_operator.post('catalog',
-    #                                                       headers=headers,
-    #                                                       payload=self._rdf)
-    #         _rdf = Graph().parse(data=r['content'])
-    #         self._uuid = list(
-    #             _rdf.objects(None, DCTERMS.identifier, unique=True))[0]
-    #         self._uuid = self._uuid.rpartition('/')[2]
+        new_element = self.__class__(self._fair_data_point)
 
-    #     # elif allow_update:
-    #     #     r = self._rest_operator.put(f'metadata-schemas/{uuids[0]}/draft',
-    #     #                                 payload=self.payload)
-    #     #     self._uuid = r['content']['uuid']
-    #     # else:
-    #     #     raise AlreadyPresentError(
-    #     #         (f"Metadata schema \"{self.name}\" already present "
-    #     #           "in the Fair Data Point."))
+        for k in element:
+            v = element[k]
 
-    # def read(self, drafts: bool = False, override: bool = False):
-    #     raise NotImplementedError(
-    #         "read() method must be implemented in derived class.")
-    # def read(self, drafts: bool = False, override: bool = False):
-    #     """Populates the instance attributes with data read from the Fair Data
-    #     Point.
+            # Attribute exists but has a different name
+            if k in self._CLASS_PROPERTIES_MAPPING_INVERTED:
+                k = self._CLASS_PROPERTIES_MAPPING_INVERTED[k]
 
-    #     :param drafts: if true, retrieves also the drafts, if any
-    #     :type drafts: bool
+            if k in self._CLASS_PROPERTIES:
+                if isinstance(v, (list, dict)):
+                    func = getattr(new_element, f"add_{k}")
+                    func(v)
+                else:
+                    setattr(new_element, k, v)
+            elif k == 'uuid':
+                setattr(new_element, '_uuid', v)
+            # Unknow or not class-supported attribute
+            # else:
+            #     print(f"Unknown {k}")
 
-    #     :param override: if set the read will override the attributes,
-    #                          raise an InstanceOverrideError error instead
-    #                          if the instance ha been modified but not
-    #                          written back (it is 'tainted').
-    #     :type override: bool
+        return new_element
 
-    #     :raises InstanceOverrideError: if the instance is tainted.
-    #     """
+    def _get_all(self):
+        element_list = self._fair_data_point.get(self.URL_PATH)['content']
 
-    #     if self._tainted and not override:
-    #         raise InstanceOverrideError(
-    #           ("The instance is tainted. Any attempt to read the attributes "
-    #            "of the Metadata Schema from the Fair Data Point will "
-    #            "overwrite your modifications."))
+        for element in element_list:
+            new_item = self.__class__()
 
-    #     if self._iri:
-    #         r = self._fair_data_point._rest_operator.get(
-    #             self._iri, absolute=True)
+            for k in element:
+                v = element[k]
 
-    #         self._rdf = Graph().parse(data=r['content'])
+                # Attribute exists but has a different name
+                if k in self._CLASS_PROPERTIES_MAPPING_INVERTED:
+                    k = self._CLASS_PROPERTIES_MAPPING_INVERTED[k]
 
-    #         # Creator is a foaf:Agent, e.g. foaf:Group or foaf:Person
-    #         _creator = self._rdf.value(subject=self._iri,
-    #                                    predicate=DCTERMS.creator,
-    #                                    any=False)
+                if k in self._CLASS_PROPERTIES:
+                    if isinstance(v, (list, dict)):
+                        func = getattr(new_item, f"add_{k}")
+                        func(v)
+                    else:
+                        setattr(new_item, k, v)
+                elif k == 'uuid':
+                    setattr(new_item, '_uuid', v)
+                # Unknow or not class-supported attribute
+                # else:
+                #     print(f"Unknown {k}")
+        return element_list
 
-    #         # XXX Could it be done better with metaclasses?
-    #         if _creator is not None:
-    #             _creator = fdp.foaf.FOAFFactory().get_agent(
-    #                 self._rdf.cbd(_creator))
-
-    #         # Creator is a foaf:Agent, e.g. foaf:Group or foaf:Person
-    #         # _creator = self._rdf.value(subject=self._iri,
-    #         #                            predicate=DCTERMS.creator, any=False)
-    #         # _creator_agent = self._rdf.value(
-    #         #     subject=_creator, predicate=RDF.type
-    #         # ).n3(self._rdf.namespace_manager)
-
-    #         # _creator_list = []
-    #         # _creator should consider also Person and Agent types
-    #         # if _creator_agent == "foaf:Group":
-    #         #     _creator_member = self._rdf.value(subject=_creator,
-    #         #                                       predicate=FOAF.member,
-    #         #                                       any=False)
-
-    #         #     for person in self._rdf.objects(_creator_member, FOAF.name):
-    #         #         _creator_list.append(str(person))
-
-    #         _description = self._rdf.value(subject=self._iri,
-    #                                        predicate=DCTERMS.description,
-    #                                        any=False)
-
-    #         _homepage = self._rdf.value(subject=self._iri,
-    #                                     predicate=FOAF.homepage,
-    #                                     any=False)
-
-    #         _issued = self._rdf.value(self._iri,
-    #                                   predicate=DCTERMS.issued,
-    #                                   any=False)
-
-    #         # XXX license could be a list?
-    #         _license = list(self._rdf.objects(None, DCTERMS.license))[0]
-
-    #         _title = self._rdf.value(self._iri,
-    #                                  predicate=DCTERMS.title,
-    #                                  any=False)
-
-    #         _version = self._rdf.value(self._iri,
-    #                                    predicate=DCAT.version,
-    #                                    any=False)
-
-    #         _publisher = self._rdf.value(subject=self._iri,
-    #                                      predicate=DCTERMS.publisher,
-    #                                      any=False)
-
-    #         # XXX Could it be done better with metaclasses?
-    #         _publisher = fdp.foaf.FOAFFactory().get_agent(
-    #             self._rdf.cbd(_publisher))
-
-    #         # self._creator = _creator_list
-    #         self._creator = _creator
-    #         self._description = str(_description)
-    #         self._homepage = str(_homepage)
-    #         self._issued = datetime.datetime.fromisoformat(str(_issued))
-    #         self._license = str(_license)
-    #         self._publisher = str(_publisher)
-    #         self._title = str(_title)
-    #         self._version = fdp.version.Version(str(_version))
-
-    #     if self._uuid:
-    #         # if drafts:
-    #         r = self._fair_data_point._rest_operator.get(
-    #             f'catalog/{self._uuid}/draft')
-    #         self._schema = r['content']
-    # #             self._version = Version(self._schema['lastVersion'])
-    # #         else:
-    # #             r = self._rest_operator.get(
-    # #                 f'metadata-schemas/{self._uuid}', raise_for_status=False)
-    # #             if r['code'] >= 400:
-    # #                 return
-    # #             self._schema = r['content']
-    # #             self._version = Version(self._schema['version'])
-    # #     elif self._name:
-    # #         parameters = {'drafts': drafts}
-
-    # #         r = self._rest_operator.get('metadata-schemas',
-    # #                                     parameters=parameters)
-    # #         schemas = [i for i in r['content'] if self._name in i['name']]
-    # #         # If there are more than one Metadata Schema with the same name
-    # #         # only the first one returned from the FDP is used.
-    # #         if len(schemas) > 0:
-    # #             if drafts:
-    # #                 self._schema = schemas[0]['draft']
-    # #                 self._version = Version(self._schema['lastVersion'])
-    # #             else:
-    # #                 self._schema = schemas[0]['latest']
-    # #                 self._version = Version(self._schema['version'])
-    #     else:
-    #         return
-
-    #     self._uuid = self._schema['uuid']
-    #     self._description = self._schema['description']
-    #     self._definition = self._schema['definition']
+    def _delete(self):
+        """Deletes the instance from the Fair Data Point."""
+        try:
+            self._fair_data_point.delete(self)
+        except requests.exceptions.HTTPError as htex:
+            if htex.response.status_code == 404:
+                raise NotPresentError()
+            else:
+                raise htex
 
     @property
     def uuid(self) -> str:
@@ -279,3 +204,39 @@ class FairDataPointItem():
                 fair_data_point)
         elif isinstance(fair_data_point, fdp.fairdatapoint.FairDataPoint):
             self._fair_data_point = fair_data_point
+
+    def create(self):
+        """Creates a new Fair Data Point Item."""
+        if self._uuid:
+            raise LibFDPError(
+                "The instance has an UUID: use update() function instead.")
+        else:
+            self._write()
+
+    def delete(self):
+        """Deletes a Fair Data Point Item from the Fair Data Point. On success, UUID
+        attribute is set to None"""
+        if self._uuid is None:
+            raise LibFDPError(
+                "The instance has no UUID.")
+        else:
+            self._delete()
+            self._uuid = None
+
+    def get(self, uuid):
+        """Retrieves all the Fair Data Point Item of the derived class from the
+        Fair Data Point."""
+        return self._get(uuid)
+
+    def get_all(self):
+        """Retrieves all the Fair Data Point Item of the derived class from the
+        Fair Data Point."""
+        return self._get_all()
+
+    def inspect(self):
+        """Retrieves the value of the class properties.
+
+        :return: a dictionary with the class's properties.
+        :rtype: dict
+        """
+        return {_p: getattr(self, _p) for _p in self._CLASS_PROPERTIES}
