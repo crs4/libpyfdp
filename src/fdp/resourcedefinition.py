@@ -75,7 +75,7 @@ class ResourceDefinition(FairDataPointItem):
         return []
 
     def add_metadataSchemaUuids(self, metadata_schema: str or MetadataSchema or
-                             list[str] or list[MetadataSchema]):
+                                list[str] or list[MetadataSchema]):
         """Adds a Metadata Schema to the Resource Definition.
 
         :param metadata_schema: the UUID of the Metadata Schema or the
@@ -100,7 +100,7 @@ class ResourceDefinition(FairDataPointItem):
                                       'Metadata Schema must have a Fair Data '
                                       'Point provided UUID.'))
 
-                _new_metadata_schema = metadata_schema.uuid
+                _new_metadata_schema = _schema.uuid
             else:
                 raise TypeError((f'Type {type(metadata_schema)} not allowed '
                                  'for "metadata_schema" argument.'))
@@ -122,32 +122,47 @@ class ResourceDefinition(FairDataPointItem):
         # pylint: disable=no-member
         return self._children or []
 
-    # XXX: Check on attributes
-    def add_children(self, children):
-        """Adds a child to the the Resource Definition."""
+    # XXX: Check on attributes and add listView (change the warning
+    # accordingly)
+    def add_children(self, children: dict | list[dict]):
+        """Adds one or more children to the the Resource Definition.
+
+        :param children: the children to add to the Resource Definition.
+                         The dictionary must be of the type:
+
+        .. code-block:: python
+
+            {
+                "resourceDefinitionUuid": string,
+                "relationUri": string
+            }
+
+        :type children: dict or list[dict]
+
+        :returns: none
+
+        :raises TypeError: if the ``children`` is not a dict nor a
+            list of dict or is missing of one mandatory attribute.
+
+        .. note::
+            the function does not check for duplication.
+
+        .. warning::
+            the ``child`` dictionary is incomplete. It lacks the listView
+            attribute.
+        """
         if type(children) is not list:
             children = [children]
 
         for _child in children:
 
-            _new_child = dict([
-                # ('relationUri', relation_uri),
-                # ('listView_title', list_view_title),
-                # ('listView_tagsUri', list_view_tags_uri)
-            ])
+            if _child['resourceDefinitionUuid'] is None:
+                raise TypeError("resourceDefinitionUuid must not be None")
 
-            if type(_child) is str:
-                print("str")
-#                 _new_child = {child: _new_child}
-            elif type(_child) is ResourceDefinition:
-                print("ResourceDefinition")
-                # if child.uuid is None:
-                #     raise ValueError(
-                #         ('The Resource Definition UUID is None. '
-                #          'Resource Definition must have a Fair '
-                #          'Data Point provided UUID.'))
-            elif type(_child) is dict:
-                _new_child = _child
+            _new_child = dict([
+                ('resourceDefinitionUuid', _child['resourceDefinitionUuid']),
+                ('relationUri', _child['relationUri']),
+            ])
 
         #     _new_child = {child.uuid: _new_child}
         # else:
@@ -172,14 +187,21 @@ class ResourceDefinition(FairDataPointItem):
         return self._externalLinks or []
 
     # XXX: Check on attributes
-    def add_externalLinks(self, links: list or dict = None):
+    def add_externalLinks(self, links: dict | list[dict]):
         """Adds external links to the the Resource Definition.
 
         :param links: the external link or a list of external links to add to
-            the Resource Definition
-        :type links: dict of the type
-            ``{"title": string, "propertyUri": string}`` or list of
-            dictionaries of the same type
+                      the Resource Definition. The dictionary must be of the
+                      type:
+
+        .. code-block:: python
+
+            {
+                "title": string,
+                "propertyUri": string
+            }
+
+        :type links: dict or list[dict]
 
         :returns: none
 

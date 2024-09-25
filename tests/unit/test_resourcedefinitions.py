@@ -51,58 +51,58 @@ class TestResourceDefinitions:
         assert res_def.name is None
         assert res_def.tainted is False
 
-    def test_set_url_prefix(self, testing_class):
-        """Checks the Resource Definition's url_prefix property setter/getter.
+    def test_set_urlPrefix(self, testing_class):
+        """Checks the Resource Definition's urlPrefix property setter/getter.
         """
 
         # Property not set
         res_def = testing_class()
-        assert res_def.url_prefix is None
+        assert res_def.urlPrefix is None
         assert res_def.tainted is False
 
         # Property set as a str
         res_def = testing_class()
-        res_def.url_prefix = "new_resource"
-        assert type(res_def.url_prefix) is str
-        assert res_def.url_prefix == "new_resource"
+        res_def.urlPrefix = "new_resource"
+        assert type(res_def.urlPrefix) is str
+        assert res_def.urlPrefix == "new_resource"
         assert res_def.tainted is True
 
         # Property set as an incompatible data type
         res_def = testing_class()
 
         with pytest.raises(TypeError):
-            res_def.url_prefix = 15
-        assert res_def.url_prefix is None
+            res_def.urlPrefix = 15
+        assert res_def.urlPrefix is None
         assert res_def.tainted is False
 
-    def test_add_metadata_schemas(self, testing_class):
-        """Tests the metadata_schemas property's setter/getter."""
+    def test_add_metadataSchemaUuids(self, testing_class):
+        """Tests the metadataSchemaUuids property's setter/getter."""
 
         res_def = testing_class()
-        assert res_def.metadata_schemas is not None
-        assert len(res_def.metadata_schemas) == 0
+        assert res_def.metadataSchemaUuids is not None
+        assert len(res_def.metadataSchemaUuids) == 0
 
         _uuid = str(uuid.uuid1())
-        res_def.add_metadata_schema(_uuid)
+        res_def.add_metadataSchemaUuids(_uuid)
 
-        assert len(res_def.metadata_schemas) == 1
+        assert len(res_def.metadataSchemaUuids) == 1
 
         uuids = []
         uuids.append(_uuid)
 
         _uuid = str(uuid.uuid1())
-        res_def.add_metadata_schema(_uuid)
+        res_def.add_metadataSchemaUuids(_uuid)
 
-        assert len(res_def.metadata_schemas) == 2
+        assert len(res_def.metadataSchemaUuids) == 2
 
         uuids.append(_uuid)
 
         # check duplications
-        res_def.add_metadata_schema(_uuid)
+        res_def.add_metadataSchemaUuids(_uuid)
 
-        assert len(res_def.metadata_schemas) == 2
+        assert len(res_def.metadataSchemaUuids) == 2
 
-        for _uuid in res_def.metadata_schemas:
+        for _uuid in res_def.metadataSchemaUuids:
             assert _uuid in uuids
 
         res_def = testing_class()
@@ -111,34 +111,34 @@ class TestResourceDefinitions:
         meta_schema_2 = MetadataSchema()
 
         with pytest.raises(ValueError):
-            res_def.add_metadata_schema(meta_schema_1)
-        assert len(res_def.metadata_schemas) == 0
+            res_def.add_metadataSchemaUuids(meta_schema_1)
+        assert len(res_def.metadataSchemaUuids) == 0
 
         with pytest.raises(ValueError):
-            res_def.add_metadata_schema(meta_schema_2)
-        assert len(res_def.metadata_schemas) == 0
+            res_def.add_metadataSchemaUuids(meta_schema_2)
+        assert len(res_def.metadataSchemaUuids) == 0
 
         res_def = testing_class()
 
         meta_schema_1 = MetadataSchema(uuid=str(uuid.uuid1()))
         meta_schema_2 = MetadataSchema(uuid=str(uuid.uuid1()))
 
-        res_def.add_metadata_schema(meta_schema_1)
-        assert len(res_def.metadata_schemas) == 1
+        res_def.add_metadataSchemaUuids(meta_schema_1)
+        assert len(res_def.metadataSchemaUuids) == 1
 
-        res_def.add_metadata_schema(meta_schema_2)
-        assert len(res_def.metadata_schemas) == 2
+        res_def.add_metadataSchemaUuids(meta_schema_2)
+        assert len(res_def.metadataSchemaUuids) == 2
 
         # Property set as an incompatible data type
         res_def = testing_class()
 
         with pytest.raises(TypeError):
-            res_def.add_metadata_schema(15)
+            res_def.add_metadataSchemaUuids(15)
 
-        assert len(res_def.metadata_schemas) == 0
+        assert len(res_def.metadataSchemaUuids) == 0
         assert res_def.tainted is False
 
-    def test_add_child(self, testing_class):
+    def test_add_children(self, testing_class):
         """Tests the children property's setter/getter."""
 
         res_def = testing_class()
@@ -150,40 +150,60 @@ class TestResourceDefinitions:
         # Tests for the relation_uri argument presence
         _uuid = str(uuid.uuid1())
         with pytest.raises(TypeError):
-            res_def.add_child(_uuid)
+            res_def.add_children(_uuid)
 
         assert len(res_def.children) == 0
 
-        res_def.add_child(_uuid, 'http://www.w3.org/ns/dcat#dataset')
+        res_def.add_children(
+            {
+                'resourceDefinitionUuid': _uuid,
+                'relationUri': 'http://www.w3.org/ns/dcat#dataset'
+            })
         assert len(res_def.children) == 1
 
         uuids.append(_uuid)
 
         _uuid = str(uuid.uuid1())
-        res_def.add_child(_uuid, 'http://www.w3.org/ns/dcat#catalog')
+        res_def.add_children(
+            {
+                'resourceDefinitionUuid': _uuid,
+                'relationUri': 'http://www.w3.org/ns/dcat#catalog'
+            })
         assert len(res_def.children) == 2
 
         uuids.append(_uuid)
 
         # check duplications
-        res_def.add_child(_uuid, 'http://www.w3.org/ns/dcat#catalog')
+        res_def.add_children(
+            {
+                'resourceDefinitionUuid': _uuid,
+                'relationUri': 'http://www.w3.org/ns/dcat#catalog'
+            })
 
-        assert len(res_def.children) == 2
+        assert len(res_def.children) == 3
 
-        for _uuid in res_def.children:
-            assert _uuid in uuids
+        for _child in res_def.children:
+            assert _child['resourceDefinitionUuid'] in uuids
 
         res_def = testing_class()
 
         child_1 = ResourceDefinition()
         child_2 = ResourceDefinition()
 
-        with pytest.raises(ValueError):
-            res_def.add_child(child_1, 'http://www.w3.org/ns/dcat#catalog')
+        with pytest.raises(TypeError):
+            res_def.add_children(
+                {
+                    'resourceDefinitionUuid': child_1.uuid,
+                    'relationUri': 'http://www.w3.org/ns/dcat#catalog'
+                })
         assert len(res_def.children) == 0
 
-        with pytest.raises(ValueError):
-            res_def.add_child(child_2, 'http://www.w3.org/ns/dcat#catalog')
+        with pytest.raises(TypeError):
+            res_def.add_children(
+                {
+                    'resourceDefinitionUuid': child_2.uuid,
+                    'relationUri': 'http://www.w3.org/ns/dcat#catalog'
+                })
         assert len(res_def.children) == 0
 
         res_def = testing_class()
@@ -191,17 +211,29 @@ class TestResourceDefinitions:
         child_1 = ResourceDefinition(uuid=str(uuid.uuid1()))
         child_2 = ResourceDefinition(uuid=str(uuid.uuid1()))
 
-        res_def.add_child(child_1, 'http://www.w3.org/ns/dcat#catalog')
+        res_def.add_children(
+            {
+                'resourceDefinitionUuid': child_2.uuid,
+                'relationUri': 'http://www.w3.org/ns/dcat#catalog'
+            })
         assert len(res_def.children) == 1
 
-        res_def.add_child(child_2, 'http://www.w3.org/ns/dcat#catalog')
+        res_def.add_children(
+            {
+                'resourceDefinitionUuid': child_2.uuid,
+                'relationUri': 'http://www.w3.org/ns/dcat#catalog'
+            })
         assert len(res_def.children) == 2
 
         # Property set as an incompatible data type
         res_def = testing_class()
 
-        with pytest.raises(TypeError):
-            res_def.add_child(15, 'http://www.w3.org/ns/dcat#catalog')
+        with pytest.raises(KeyError):
+            res_def.add_children(
+                {
+                    'attribute_1': child_2.uuid,
+                    'relationUri': 'http://www.w3.org/ns/dcat#catalog'
+                })
 
         assert len(res_def.children) == 0
         assert res_def.tainted is False
