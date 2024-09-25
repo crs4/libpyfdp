@@ -212,20 +212,11 @@ class ResourceDefinition(FairDataPointItem):
             links = [links]
 
         for _link in links:
-            for k, v in _link.items():
-                if k == "propertyUri":
-                    _property_uri = v
-                elif k == "title":
-                    _title = v
+            _new_link = {
+                "title": _link['title'],
+                "propertyUri": _link['propertyUri']
+            }
 
-                try:
-                    _new_link = {
-                        "title": _title,
-                        "propertyUri": _property_uri
-                    }
-
-                except UnboundLocalError:
-                    pass
 
             if self._externalLinks is None:
                 self._externalLinks = [_new_link]

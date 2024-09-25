@@ -1,6 +1,7 @@
 # pylint: disable=unidiomatic-typecheck,redefined-outer-name
 # pylint: disable=missing-module-docstring,missing-class-docstring
 # pylint: disable=missing-function-docstring
+import json
 import uuid
 
 import pytest
@@ -237,3 +238,72 @@ class TestResourceDefinitions:
 
         assert len(res_def.children) == 0
         assert res_def.tainted is False
+
+    def test_add_externalLinks(self, testing_class):
+        """Tests the externalLinks property's setter/getter."""
+
+        res_def = testing_class()
+        assert res_def.externalLinks is not None
+        assert len(res_def.externalLinks) == 0
+
+        # uuids = []
+
+        # Tests for the propertyUri argument presence
+        with pytest.raises(KeyError):
+            res_def.add_externalLinks(
+                {
+                    'title': 'A title',
+                })
+
+        # Tests for the title argument presence
+        with pytest.raises(KeyError):
+            res_def.add_externalLinks(
+                {
+                    'propertyUri': 'A property uri',
+                })
+
+        assert len(res_def.externalLinks) == 0
+
+        res_def.add_externalLinks(
+            {
+                'title': 'A title',
+                'propertyUri': 'A property uri',
+            })
+
+        assert len(res_def.externalLinks) == 1
+
+        res_def.add_externalLinks(
+            {
+                'title': 'Another title',
+                'propertyUri': 'Another property uri',
+            })
+
+        assert len(res_def.externalLinks) == 2
+
+        # check duplications
+        res_def.add_externalLinks(
+            {
+                'title': 'Another title',
+                'propertyUri': 'Another property uri',
+            })
+
+        assert len(res_def.externalLinks) == 3
+
+        for _link in res_def.externalLinks:
+            assert _link['title'] in ['A title', 'Another title']
+
+    def test__content(self, testing_class):
+        """Tests the _content function."""
+        res_def = testing_class()
+
+        res_def.name = "A Resource Definition"
+        _uuid = str(uuid.uuid1())
+        res_def._uuid = _uuid
+
+        _content = res_def._content()
+
+        for k, v in json.loads(_content).items():
+            if k == 'name':
+                assert v == "A Resource Definition"
+            if k == 'uuid':
+                assert v == _uuid
