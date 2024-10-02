@@ -83,10 +83,16 @@ class FairDataPoint():
             raise TypeError((f'Type {type(fairdatapointitem)} not allowed for '
                              '"delete" argument'))
 
-    def get(self, path: str, uuid: str = None):
+    def get(self, path: str, uuid: str = None, **kwargs):
         if uuid:
-            r = self._rest_operator.get(f"{path}/{uuid}")
+            if kwargs.get('draft', False):
+                kwargs = {k: v for k, v in kwargs.items() if k not in
+                          ['draft']}
+
+                r = self._rest_operator.get(f"{path}/{uuid}/draft", **kwargs)
+            else:
+                r = self._rest_operator.get(f"{path}/{uuid}", **kwargs)
         else:
-            r = self._rest_operator.get(path)
+            r = self._rest_operator.get(path, **kwargs)
 
         return r

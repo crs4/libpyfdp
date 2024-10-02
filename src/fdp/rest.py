@@ -125,8 +125,8 @@ class RestOperator(object):
                }
 
     def get(self, uri: str = None, headers: dict = None,
-            parameters: dict = None, raise_for_status: bool = True,
-            absolute: bool = False) -> dict:
+            raise_for_status: bool = True,
+            absolute: bool = False, **parameters) -> dict:
         """Executes a GET query to the Fair Data Point.
 
         :param uri: the relative path of the resource
@@ -136,8 +136,6 @@ class RestOperator(object):
                         one
         :type headers: dict
 
-        :param parameters: dict parameters for the query, if any
-        :type parameters: dict
 
         :param raise_for_status: raise an HTTPError if the query returns an
                                error code (>=400). Overrides the instance
@@ -147,6 +145,9 @@ class RestOperator(object):
         :param absolute: the uri is considered absolute (does not prepend the
                          Fair Data Point URL)
         :type absolute: bool
+
+        :param parameters: dict parameters for the query, if any
+        :type parameters: dict
 
         :return: a dictionary ``{'code': int, 'content': dict or text}``
         :rtype: dict

@@ -5,7 +5,7 @@ import uuid
 from fdp.metadataschema import MetadataSchema
 from fdp.catalog import Catalog
 from fdp.fairdatapoint import FairDataPoint
-from fdp.base import LibFDPError
+from fdp.base import LibFDPError, NotPresentError
 
 from test_fair_data_point import fdp_client_service, fdp_client_token, docker_compose_file
 from test_fair_data_point import docker_compose_project_name, docker_cleanup
@@ -80,8 +80,8 @@ def metadata_schema(fdp_client_service):
 
 class TestMetedataSchema:
 
-    def test_fair_data_point_metadata_schema_create(self, fdp_client_service,
-            fdp_client_token, metadata_schema):
+    def test_fair_data_point_metadata_schema_create_and_delete(
+        self, fdp_client_service, fdp_client_token, metadata_schema):
         """Tests the creation of a Metadata Schema."""
         fair_data_point = fdp_client_service
         token = fdp_client_token
@@ -90,6 +90,10 @@ class TestMetedataSchema:
         FDP = FairDataPoint(fair_data_point, token=token)
 
         mds.fair_data_point = FDP
+
+        # So far the Metadata Schema exists only in memory, not on the FDP
+        with pytest.raises(LibFDPError):
+            mds.delete()
 
         # The metadataschema has no UUID so create is the correct function to
         # call
@@ -101,27 +105,14 @@ class TestMetedataSchema:
         with pytest.raises(LibFDPError):
             mds.create()
 
-    def test_fair_data_point_metadata_schema_delete(self, fdp_client_service,
-            fdp_client_token, metadata_schema):
-        """Tests the deletion of a Metadata Schema."""
-        fair_data_point = fdp_client_service
-        token = fdp_client_token
-        mds = metadata_schema
-
-        FDP = FairDataPoint(fair_data_point, token=token)
-
-        mds.fair_data_point = FDP
-        mds._uuid = None
-
-        with pytest.raises(LibFDPError):
-            mds.delete()
-
-        # The metadataschema has no UUID so create is the correct function to
-        # call
-        mds.create()
-
         assert mds.uuid is not None
 
+        mds.get_all()
+
+        # The metadaschema exists but only as draft
+        with pytest.raises(NotPresentError):
+            MetadataSchema(FDP).get(mds.uuid)
+
+        MetadataSchema(FDP).get(mds.uuid, draft=True)
         mds.delete()
         assert mds.uuid is None
-

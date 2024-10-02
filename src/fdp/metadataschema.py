@@ -7,7 +7,7 @@ import rdflib
 
 from fdp.fairdatapoint import FairDataPoint
 from fdp.base import FairDataPointItem
-from fdp.base import LibFDPError, SetEncoder
+from fdp.base import SetEncoder
 
 
 class MetadataSchema(FairDataPointItem):
@@ -16,9 +16,13 @@ class MetadataSchema(FairDataPointItem):
     URL_PATH = 'metadata-schemas'
     CONTENT_TYPE = 'application/json'
 
-    _CLASS_PROPERTIES = ['name', 'suggestedResourceName', 'description',
+    _READ_PROPERTIES = ['extendSchemaUuids', 'childSchemaUuids', 'latest',
+                        'uuid', 'draft', 'versions', 'lastVersion']
+    _WRITE_PROPERTIES = ['name', 'suggestedResourceName', 'description',
                          'abstractSchema', 'extendsSchemaUuids',
-                         'suggestedUrlPrefix', 'definition']
+                         'suggestedUrlPrefix',
+                         'definition']
+    _CLASS_PROPERTIES = _READ_PROPERTIES + _WRITE_PROPERTIES
 
     def __init__(self, fair_data_point: FairDataPoint = None,
                  uuid: str = None):
@@ -126,41 +130,52 @@ class MetadataSchema(FairDataPointItem):
     def extendsSchemaUuids(self) -> set:
         """Get the list of the Schemas' UUIDs extended by the Metadata Schema.
 
-        .. note:: the setter for this property is the ``extends_schema``
+        .. note:: the setter for this property is the ``add_extendSchemaUuids``
             function.
         """
         return self._extendsSchemaUuids or set()
 
-    def extends_schema(self, metadata_schema: str or MetadataSchema):
-        """Adds a Metadata Schema to the list of Metadata Schema extended.
+    def add_extendsSchemaUuids(self, metadata_schema: str | MetadataSchema |
+                               list[str] | list[MetadataSchema]):
+        """Adds Metadata Schemas (one or a list) to the list of Metadata Schema
+        extended.
 
         :param metadata_schema: the UUID of the Metadata Schema or the
-            MetadataSchema instance to add
-        :type metadata_schema: str or MetadataSchema instance
+            MetadataSchema instance to add ora a list of them
+        :type metadata_schema: str or MetadataSchema instance or a list of str
+            or MetadataSchema instances
 
         :returns: none
 
         :raises TypeError: if the ``metadata_schema`` is not a str nor a
-            MetadataSchema instance
+            MetadataSchema instance or a list of them
         """
-        if type(metadata_schema) is str:
-            _new_metadata_schema = metadata_schema
-        elif type(metadata_schema) is MetadataSchema:
-            if metadata_schema.uuid is None:
-                raise ValueError(('The Metadata Schema UUID is None. '
-                                  'Metadata Schema must have a Fair Data '
-                                  'Point provided UUID.'))
+        if type(metadata_schema) is not list:
+            metadata_schema = [metadata_schema]
 
-            _new_metadata_schema = metadata_schema.uuid
-        else:
-            raise TypeError((f'Type {type(metadata_schema)} not allowed for '
-                             '"metadata_schema" argument.'))
-        # pylint: disable=access-member-before-definition
-        if self._extendsSchemaUuids is None:
-            # pylint: disable=attribute-defined-outside-init
-            self._extendsSchemaUuids = {_new_metadata_schema}
-        else:
-            self._extendsSchemaUuids.add(_new_metadata_schema)
+        for _schema in metadata_schema:
+            if _schema is not None:
+                if type(_schema) is str:
+                    _new_metadata_schema = _schema
+                elif type(_schema) is MetadataSchema:
+                    if _schema.uuid is None:
+                        raise ValueError(
+                            ('The Metadata Schema UUID is None. Metadata '
+                             'Schema must have a Fair Data ' 'Point provided '
+                             'UUID.'))
+
+                    _new_metadata_schema = _schema.uuid
+                else:
+                    raise TypeError(
+                        (f'Type {type(_schema)} not allowed for '
+                         '"metadata_schema" argument.'))
+
+                # pylint: disable=access-member-before-definition
+                if self._extendsSchemaUuids is None:
+                    # pylint: disable=attribute-defined-outside-init
+                    self._extendsSchemaUuids = {_new_metadata_schema}
+                else:
+                    self._extendsSchemaUuids.add(_new_metadata_schema)
 
 #     @property
 #     def version(self) -> str:
@@ -177,26 +192,6 @@ class MetadataSchema(FairDataPointItem):
 #         else:
 #             raise ValueError
 #
-#     def check_duplicates(self, schema_name: str) -> list:
-#         """Checks if a metadata schema is already present in the FDP.
-#
-#         :param schema_name: the name of the schema to check
-#         :type schema_name: str
-#
-#         :return: a list of uuids of the metadata schemas found having the
-#         same
-#                  name or None
-#         :rtype: list or None
-#         """
-#         parameters = {'drafts': True}
-#
-#         r = self._rest_operator.get('metadata-schemas',
-#         parameters=parameters)
-#         uuids = [i['uuid'] for i in r['content'] if schema_name in i['name']]
-#
-#         return None if len(uuids) == 0 else uuids
-
-
 #     def publish(self):
 #         if self._uuid is None:
 #             raise NotPresentError((
@@ -214,16 +209,37 @@ class MetadataSchema(FairDataPointItem):
 #         _ =
 #         self._rest_operator.post(f'metadata-schemas/{self._uuid}/versions',
 #                                      payload=payload)
-#
+
 #     def __str__(self):
 #         return (f"<MetadataSchema uuid={self._uuid}, name=\"{self._name}\", "
 #                 f"version={self._version}, "
 #                 "{}>".format("Tainted" if self._tainted else "NotTainted"))
 
+    def __str__(self):
+        return (f"<MetadataSchema uuid={self._uuid}, name=\"{self._name}\", "
+                "{}{}>".format("tainted" if self._tainted else "not tainted",
+                               ", draft" if self._draft else ""))
+
     def _content(self):
-        content_dict = {k: getattr(self, k) for k in self._CLASS_PROPERTIES}
+        content_dict = {k: getattr(self, k) for k in
+                        self._WRITE_PROPERTIES}
 
         return json.dumps(content_dict, cls=SetEncoder)
+
+    def _content_setter(self, content: dict):
+        for k in content:
+            v = content[k]
+
+            if k in self._WRITE_PROPERTIES:
+                if isinstance(v, (list, dict)):
+                    func = getattr(self, f"add_{k}")
+                    func(v)
+                else:
+                    setattr(self, k, v)
+            elif k in self._READ_PROPERTIES:
+                setattr(self, f"_{k}", v)
+            else:
+                print(f"Unknown {k}: {v}")
 
     def create(self):
         """Creates a new Metadata Schema."""

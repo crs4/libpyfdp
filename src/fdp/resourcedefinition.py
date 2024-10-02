@@ -17,14 +17,10 @@ class ResourceDefinition(FairDataPointItem):
     URL_PATH = 'resource-definitions'
     CONTENT_TYPE = 'application/json'
 
-    _CLASS_PROPERTIES = ['name', 'urlPrefix', 'metadataSchemaUuids',
+    _READ_PROPERTIES = ['uuid', 'targetClassUris']
+    _WRITE_PROPERTIES = ['name', 'urlPrefix', 'metadataSchemaUuids',
                          'children', 'externalLinks']
-
-    # _CLASS_PROPERTIES_MAPPING = {
-    #     'metadata_schemas': 'metadataSchemaUuids',
-    #     'url_prefix': 'urlPrefix',
-    #     'external_links': 'externalLinks'
-    # }
+    _CLASS_PROPERTIES = _READ_PROPERTIES + _WRITE_PROPERTIES
 
     def __init__(self, fair_data_point: fdp.fairdatapoint.FairDataPoint = None,
                  uuid: str = None):
@@ -66,16 +62,16 @@ class ResourceDefinition(FairDataPointItem):
     def metadataSchemaUuids(self) -> list:
         """Get the Metadata Schemas's UUID of the Resource Definition.
 
-        .. note:: the setter for this property is the ``add_metadataSchemaUuids``
-            function.
+        .. note:: the setter for this property is the
+            ``add_metadataSchemaUuids`` function.
         """
         if self._metadataSchemaUuids:
             return list(self._metadataSchemaUuids)
 
         return []
 
-    def add_metadataSchemaUuids(self, metadata_schema: str or MetadataSchema or
-                                list[str] or list[MetadataSchema]):
+    def add_metadataSchemaUuids(self, metadata_schema: str | MetadataSchema |
+                                list[str] | list[MetadataSchema]):
         """Adds a Metadata Schema to the Resource Definition.
 
         :param metadata_schema: the UUID of the Metadata Schema or the
@@ -86,7 +82,7 @@ class ResourceDefinition(FairDataPointItem):
         :returns: none
 
         :raises TypeError: if the ``metadata_schema`` is not a str nor a
-            MetadataSchema instance
+            MetadataSchema instance or a list of them
         """
         if type(metadata_schema) is not list:
             metadata_schema = [metadata_schema]
@@ -217,21 +213,28 @@ class ResourceDefinition(FairDataPointItem):
                 "propertyUri": _link['propertyUri']
             }
 
-
             if self._externalLinks is None:
                 self._externalLinks = [_new_link]
             else:
                 self._externalLinks.append(_new_link)
 
     def _content(self):
-        content_dict = {k: getattr(self, k) for k in self._CLASS_PROPERTIES if
-                        getattr(self, k) is not None}
-
-        for k in content_dict.copy():
-            if k in self._CLASS_PROPERTIES_MAPPING:
-                content_dict[self._CLASS_PROPERTIES_MAPPING[k]] = (
-                    content_dict.pop(k))
-
-        content_dict['uuid'] = self._uuid
+        content_dict = {k: getattr(self, k) for k in
+                        self._WRITE_PROPERTIES}
 
         return json.dumps(content_dict, cls=SetEncoder)
+
+    def _content_setter(self, content: dict):
+        for k in content:
+            v = content[k]
+
+            if k in self._WRITE_PROPERTIES:
+                if isinstance(v, (list, dict)):
+                    func = getattr(self, f"add_{k}")
+                    func(v)
+                else:
+                    setattr(self, k, v)
+            elif k in self._READ_PROPERTIES:
+                setattr(self, f"_{k}", v)
+            else:
+                print(f"Unknown {k}: {v}")

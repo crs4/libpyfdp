@@ -1,7 +1,7 @@
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-class-docstring,missing-function-docstring
 # pylint: disable=unidiomatic-typecheck,too-many-instance-attributes
-from collections.abc import MutableSequence, MutableMapping
+# from collections.abc import MutableSequence, MutableMapping
 import json
 import requests
 
@@ -47,13 +47,16 @@ class IncompatibleClassError(RuntimeError):
 class FairDataPointItem():
     """Base class for all the Fair Data Point entities."""
 
+    _READ_PROPERTIES = []
+    _WRITE_PROPERTIES = []
     _CLASS_PROPERTIES = []
     _CLASS_PROPERTIES_MAPPING = {}
     _CLASS_PROPERTIES_MAPPING_INVERTED = {}
 
     __frozen = False
 
-    def __init__(self, fair_data_point: fdp.fairdatapoint.FairDataPoint = None):
+    def __init__(self,
+                 fair_data_point: fdp.fairdatapoint.FairDataPoint = None):
 
         self._CLASS_PROPERTIES_MAPPING_INVERTED = {
             v: k for k, v in self._CLASS_PROPERTIES_MAPPING.items()}
@@ -61,8 +64,10 @@ class FairDataPointItem():
         for _p in self._CLASS_PROPERTIES:
             setattr(self.__class__, f'_{_p}', None)
 
-        self._fair_data_point = (fair_data_point or
-                                 fdp.fairdatapoint.FairDataPoint('http://127.0.0.1'))
+        self._fair_data_point = (
+            fair_data_point or
+            fdp.fairdatapoint.FairDataPoint('http://127.0.0.1'))
+
         self._rdf = None
         self._iri = None
         self._uuid = None
@@ -88,7 +93,7 @@ class FairDataPointItem():
         :returns: a list of class properties.
         :rtype: list of str
         """
-        return self._CLASS_PROPERTIES
+        return self._WRITE_PROPERTIES
 
     # def publish(self):
     #     raise NotImplementedError(
@@ -123,58 +128,32 @@ class FairDataPointItem():
 
         return response['content']
 
-    def _get(self, uuid: str):
-        element = self._fair_data_point.get(
-            self.URL_PATH, uuid=uuid)['content']
+    def _get(self, uuid: str, **kwargs):
+        try:
+            element = self._fair_data_point.get(
+                self.URL_PATH, uuid=uuid, **kwargs)['content']
 
-        new_element = self.__class__(self._fair_data_point)
+            new_item = self.__class__(self._fair_data_point)
+            new_item._content_setter(element)
+        except requests.exceptions.HTTPError as htex:
+            if htex.response.status_code == 404:
+                raise NotPresentError()
+            else:
+                raise htex
 
-        for k in element:
-            v = element[k]
+        return new_item
 
-            # Attribute exists but has a different name
-            if k in self._CLASS_PROPERTIES_MAPPING_INVERTED:
-                k = self._CLASS_PROPERTIES_MAPPING_INVERTED[k]
-
-            if k in self._CLASS_PROPERTIES:
-                if isinstance(v, (list, dict)):
-                    func = getattr(new_element, f"add_{k}")
-                    func(v)
-                else:
-                    setattr(new_element, k, v)
-            elif k == 'uuid':
-                setattr(new_element, '_uuid', v)
-            # Unknow or not class-supported attribute
-            # else:
-            #     print(f"Unknown {k}")
-
-        return new_element
-
-    def _get_all(self):
-        element_list = self._fair_data_point.get(self.URL_PATH)['content']
+    def _get_all(self, **kwargs):
+        element_list = self._fair_data_point.get(
+            self.URL_PATH, **kwargs)['content']
+        item_list = []
 
         for element in element_list:
-            new_item = self.__class__()
+            new_item = self.__class__(self._fair_data_point)
+            new_item._content_setter(element)
+            item_list.append(new_item)
 
-            for k in element:
-                v = element[k]
-
-                # Attribute exists but has a different name
-                if k in self._CLASS_PROPERTIES_MAPPING_INVERTED:
-                    k = self._CLASS_PROPERTIES_MAPPING_INVERTED[k]
-
-                if k in self._CLASS_PROPERTIES:
-                    if isinstance(v, (list, dict)):
-                        func = getattr(new_item, f"add_{k}")
-                        func(v)
-                    else:
-                        setattr(new_item, k, v)
-                elif k == 'uuid':
-                    setattr(new_item, '_uuid', v)
-                # Unknow or not class-supported attribute
-                # else:
-                #     print(f"Unknown {k}")
-        return element_list
+        return item_list
 
     def _delete(self):
         """Deletes the instance from the Fair Data Point."""
@@ -187,8 +166,30 @@ class FairDataPointItem():
                 raise htex
 
     @property
+    def draft(self) -> str:
+        """The ``draft`` attribute.
+
+        .. note::
+            This attribute has no setter.
+        """
+        return self._draft
+
+    @property
+    def latest(self) -> str:
+        """The ``latest`` attribute.
+
+        .. note::
+            This attribute has no setter.
+        """
+        return self._latest
+
+    @property
     def uuid(self) -> str:
-        """The uuid attribute."""
+        """The ``uuid`` attribute.
+
+        .. note::
+            This attribute has no setter.
+        """
         return self._uuid
 
     @property
@@ -223,15 +224,15 @@ class FairDataPointItem():
             self._delete()
             self._uuid = None
 
-    def get(self, uuid):
+    def get(self, uuid, **kwargs):
         """Retrieves all the Fair Data Point Item of the derived class from the
         Fair Data Point."""
-        return self._get(uuid)
+        return self._get(uuid, **kwargs)
 
-    def get_all(self):
+    def get_all(self, **kwargs):
         """Retrieves all the Fair Data Point Item of the derived class from the
         Fair Data Point."""
-        return self._get_all()
+        return self._get_all(**kwargs)
 
     def inspect(self):
         """Retrieves the value of the class properties.

@@ -191,7 +191,7 @@ class TestMetadataSchema:
         assert len(meta_sch.extendsSchemaUuids) == 0
 
         _uuid = str(uuid.uuid1())
-        meta_sch.extends_schema(_uuid)
+        meta_sch.add_extendsSchemaUuids(_uuid)
 
         assert len(meta_sch.extendsSchemaUuids) == 1
 
@@ -199,14 +199,14 @@ class TestMetadataSchema:
         uuids.append(_uuid)
 
         _uuid = str(uuid.uuid1())
-        meta_sch.extends_schema(_uuid)
+        meta_sch.add_extendsSchemaUuids(_uuid)
 
         assert len(meta_sch.extendsSchemaUuids) == 2
 
         uuids.append(_uuid)
 
         # check duplications
-        meta_sch.extends_schema(_uuid)
+        meta_sch.add_extendsSchemaUuids(_uuid)
 
         assert len(meta_sch.extendsSchemaUuids) == 2
 
@@ -219,11 +219,11 @@ class TestMetadataSchema:
         meta_schema_2 = MetadataSchema()
 
         with pytest.raises(ValueError):
-            meta_sch.extends_schema(meta_schema_1)
+            meta_sch.add_extendsSchemaUuids(meta_schema_1)
         assert len(meta_sch.extendsSchemaUuids) == 0
 
         with pytest.raises(ValueError):
-            meta_sch.extends_schema(meta_schema_2)
+            meta_sch.add_extendsSchemaUuids(meta_schema_2)
         assert len(meta_sch.extendsSchemaUuids) == 0
 
         meta_sch = testing_class()
@@ -231,17 +231,17 @@ class TestMetadataSchema:
         meta_schema_1 = MetadataSchema(uuid=str(uuid.uuid1()))
         meta_schema_2 = MetadataSchema(uuid=str(uuid.uuid1()))
 
-        meta_sch.extends_schema(meta_schema_1)
+        meta_sch.add_extendsSchemaUuids(meta_schema_1)
         assert len(meta_sch.extendsSchemaUuids) == 1
 
-        meta_sch.extends_schema(meta_schema_2)
+        meta_sch.add_extendsSchemaUuids(meta_schema_2)
         assert len(meta_sch.extendsSchemaUuids) == 2
 
         # Property set as an incompatible data type
         meta_sch = testing_class()
 
         with pytest.raises(TypeError):
-            meta_sch.extends_schema(15)
+            meta_sch.add_extendsSchemaUuids(15)
 
         assert len(meta_sch.extendsSchemaUuids) == 0
         assert meta_sch.tainted is False
