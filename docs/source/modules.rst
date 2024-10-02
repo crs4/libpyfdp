@@ -8,3 +8,4 @@ fdp
    catalog
    fairdatapoint
    resourcedefinition
+   metadataschema
