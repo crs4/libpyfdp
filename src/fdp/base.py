@@ -95,9 +95,36 @@ class FairDataPointItem():
         """
         return self._WRITE_PROPERTIES
 
-    # def publish(self):
-    #     raise NotImplementedError(
-    #         "publish() method must be implemented in derived class.")
+    def publish(self, version, description: str = None):
+        if description is None:
+            description = self.description
+
+        if len(description) == 0:
+            raise ValueError("Description must be a non empty string.")
+
+        version = fdp.version.Version(version)
+
+        return self._publish(version, description)
+
+    def _publish(self, version, description: str):
+
+        headers = {
+            'Content-Type': self.CONTENT_TYPE
+        }
+
+        payload = json.dumps({
+            "major": version.major,
+            "minor": version.minor,
+            "patch": version.patch,
+            "version": version.as_str(),
+            "description": description,
+            "published": False
+        })
+
+        self._fair_data_point.write(
+            f"{self.URL_PATH}/{self.uuid}/versions",
+            payload=payload,
+            headers=headers)
 
     def _write(self, allow_update: bool = True,
                allow_duplicates: bool = False):
@@ -129,19 +156,22 @@ class FairDataPointItem():
         return response['content']
 
     def _get(self, uuid: str, **kwargs):
-        try:
-            element = self._fair_data_point.get(
-                self.URL_PATH, uuid=uuid, **kwargs)['content']
+        if uuid is not None:
+            try:
+                element = self._fair_data_point.get(
+                    self.URL_PATH, uuid=uuid, **kwargs)['content']
 
-            new_item = self.__class__(self._fair_data_point)
-            new_item._content_setter(element)
-        except requests.exceptions.HTTPError as htex:
-            if htex.response.status_code == 404:
-                raise NotPresentError()
-            else:
-                raise htex
+                new_item = self.__class__(self._fair_data_point)
+                new_item._content_setter(element)
+            except requests.exceptions.HTTPError as htex:
+                if htex.response.status_code == 404:
+                    raise NotPresentError()
+                else:
+                    raise htex
 
-        return new_item
+            return new_item
+        else:
+            return None
 
     def _get_all(self, **kwargs):
         element_list = self._fair_data_point.get(
@@ -226,7 +256,18 @@ class FairDataPointItem():
 
     def get(self, uuid, **kwargs):
         """Retrieves all the Fair Data Point Item of the derived class from the
-        Fair Data Point."""
+        Fair Data Point.
+
+        :param uuid: the UUID of the Item to retrieve
+        :type uuid: str
+
+        :returns: the Fair Data Point item
+
+        :raises TypeError: if the ``uuid`` is None
+        :raises NotPresentError: if the ``uuid`` is not present in the Fair
+            Data Point
+
+        """
         return self._get(uuid, **kwargs)
 
     def get_all(self, **kwargs):
@@ -241,3 +282,27 @@ class FairDataPointItem():
         :rtype: dict
         """
         return {_p: getattr(self, _p) for _p in self._CLASS_PROPERTIES}
+
+    def check_duplicates(self, ignore_case: bool = False):
+        """Commodity function that checks if the given Item is already present
+        in the Fair Data Point.
+
+        The check is performed against the name of the item.
+
+        :param ignore_case: wether or not match case
+        :type ignore_case: bool
+
+        :returns: True if an item with the same name is already present in
+            the Fair Data Point, False otherwise
+        :rtype: bool
+        """
+        element_list = self.get_all()
+        for element in element_list:
+            if ignore_case:
+                if element.name.tolower() == self.name.tolower():
+                    return True
+            else:
+                if element.name == self.name:
+                    return True
+
+        return False

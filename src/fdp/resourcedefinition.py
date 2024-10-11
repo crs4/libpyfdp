@@ -158,6 +158,7 @@ class ResourceDefinition(FairDataPointItem):
             _new_child = dict([
                 ('resourceDefinitionUuid', _child['resourceDefinitionUuid']),
                 ('relationUri', _child['relationUri']),
+                ('listView', _child['listView']),
             ])
 
         #     _new_child = {child.uuid: _new_child}
