@@ -158,7 +158,11 @@ class TestResourceDefinitions:
         res_def.add_children(
             {
                 'resourceDefinitionUuid': _uuid,
-                'relationUri': 'http://www.w3.org/ns/dcat#dataset'
+                'relationUri': 'http://www.w3.org/ns/dcat#dataset',
+                'listView': {
+                    'title': 'Datasets',
+                    'tagsUri': 'http://www.w3.org/ns/dcat#theme'
+                }
             })
         assert len(res_def.children) == 1
 
@@ -168,7 +172,11 @@ class TestResourceDefinitions:
         res_def.add_children(
             {
                 'resourceDefinitionUuid': _uuid,
-                'relationUri': 'http://www.w3.org/ns/dcat#catalog'
+                'relationUri': 'http://www.w3.org/ns/dcat#catalog',
+                'listView': {
+                    'title': 'Datasets',
+                    'tagsUri': 'http://www.w3.org/ns/dcat#theme'
+                }
             })
         assert len(res_def.children) == 2
 
@@ -178,7 +186,11 @@ class TestResourceDefinitions:
         res_def.add_children(
             {
                 'resourceDefinitionUuid': _uuid,
-                'relationUri': 'http://www.w3.org/ns/dcat#catalog'
+                'relationUri': 'http://www.w3.org/ns/dcat#catalog',
+                'listView': {
+                    'title': 'Datasets',
+                    'tagsUri': 'http://www.w3.org/ns/dcat#theme'
+                }
             })
 
         assert len(res_def.children) == 3
@@ -195,7 +207,12 @@ class TestResourceDefinitions:
             res_def.add_children(
                 {
                     'resourceDefinitionUuid': child_1.uuid,
-                    'relationUri': 'http://www.w3.org/ns/dcat#catalog'
+                    'relationUri': 'http://www.w3.org/ns/dcat#catalog',
+                    'listView': {
+                        'title': 'Datasets',
+                        'tagsUri': 'http://www.w3.org/ns/dcat#theme'
+                    }
+
                 })
         assert len(res_def.children) == 0
 
@@ -203,7 +220,12 @@ class TestResourceDefinitions:
             res_def.add_children(
                 {
                     'resourceDefinitionUuid': child_2.uuid,
-                    'relationUri': 'http://www.w3.org/ns/dcat#catalog'
+                    'relationUri': 'http://www.w3.org/ns/dcat#catalog',
+                    'listView': {
+                        'title': 'Datasets',
+                        'tagsUri': 'http://www.w3.org/ns/dcat#theme'
+                    }
+
                 })
         assert len(res_def.children) == 0
 
@@ -215,14 +237,24 @@ class TestResourceDefinitions:
         res_def.add_children(
             {
                 'resourceDefinitionUuid': child_2.uuid,
-                'relationUri': 'http://www.w3.org/ns/dcat#catalog'
+                'relationUri': 'http://www.w3.org/ns/dcat#catalog',
+                'listView': {
+                    'title': 'Datasets',
+                    'tagsUri': 'http://www.w3.org/ns/dcat#theme'
+                }
+
             })
         assert len(res_def.children) == 1
 
         res_def.add_children(
             {
                 'resourceDefinitionUuid': child_2.uuid,
-                'relationUri': 'http://www.w3.org/ns/dcat#catalog'
+                'relationUri': 'http://www.w3.org/ns/dcat#catalog',
+                'listView': {
+                    'title': 'Datasets',
+                    'tagsUri': 'http://www.w3.org/ns/dcat#theme'
+                }
+
             })
         assert len(res_def.children) == 2
 
@@ -233,7 +265,12 @@ class TestResourceDefinitions:
             res_def.add_children(
                 {
                     'attribute_1': child_2.uuid,
-                    'relationUri': 'http://www.w3.org/ns/dcat#catalog'
+                    'relationUri': 'http://www.w3.org/ns/dcat#catalog',
+                    'listView': {
+                        'title': 'Datasets',
+                        'tagsUri': 'http://www.w3.org/ns/dcat#theme'
+                    }
+
                 })
 
         assert len(res_def.children) == 0
