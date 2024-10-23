@@ -20,8 +20,8 @@ services:
 
     mongo:
         image: mongo:4.0.12
-        ports:
-            - 27017:27017
+        # ports:
+        #     - 27017:27017
         volumes:
             - mongodb_volume:/data/db
 
@@ -29,8 +29,8 @@ services:
         image: ontotext/graphdb:10.1.2
         restart: always
         hostname: graphdb
-        ports:
-            - 9091:7200
+        # ports:
+        #     - 9091:7200
         volumes:
             - graphdb_volume:/opt/graphdb/home
 
