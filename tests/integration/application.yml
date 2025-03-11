@@ -1,3 +1,12 @@
 instance:
-    clientUrl: http://127.0.0.1:8888/
-    persistentUrl: http://127.0.0.1:8888/
+    clientUrl: http://fdp:8000/
+    persistentUrl: http://fdp:8000/
+
+ping:
+    enabled: false
+
+repository:
+    type: 4
+    graphDb:
+        url: http://graphdb:7200
+        repository: fair_data_point
