@@ -4,8 +4,8 @@ services:
     volumes:
       - ./application.yml:/fdp/application.yml:ro
     depends_on:
-      # init-graphdb:
-      #   condition: service_completed_successfully
+      init-graphdb:
+        condition: service_completed_successfully
       graphdb:
         condition: service_started
 
