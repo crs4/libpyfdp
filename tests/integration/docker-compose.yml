@@ -29,17 +29,17 @@ services:
   graphdb:
     image: ontotext/graphdb:10.4.1
 
-  # init-graphdb:
-  #   image: ontotext/graphdb:10.4.1
-  #   depends_on:
-  #     graphdb:
-  #       condition: service_started
-  #   volumes:
-  #     - ./scripts/fair_data_point.ttl:/fair_data_point.ttl
-  #     - ./scripts/init_graphdb.sh:/init_graphdb.sh
-  #   environment:
-  #     GRAPHDB_URL: http://graphdb:7200
-  #   entrypoint: /init_graphdb.sh
+  init-graphdb:
+    image: ontotext/graphdb:10.4.1
+    depends_on:
+      graphdb:
+        condition: service_started
+    volumes:
+      - ../../../scripts/fair_data_point.ttl:/fair_data_point.ttl
+      - ../../../scripts/init_graphdb.sh:/init_graphdb.sh
+    environment:
+      GRAPHDB_URL: http://graphdb:7200
+    entrypoint: /init_graphdb.sh
 
 volumes:
   mongodb_volume:
