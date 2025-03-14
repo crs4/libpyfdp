@@ -2,7 +2,7 @@ services:
   fdp:
     image: fairdata/fairdatapoint:latest
     volumes:
-      - ./libpyfdp/tests/integration/application.yml:/fdp/application.yml:ro
+      - ./application.yml:/fdp/application.yml:ro
     depends_on:
       # init-graphdb:
       #   condition: service_completed_successfully
