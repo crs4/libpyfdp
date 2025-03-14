@@ -33,23 +33,38 @@ class Dataset(Resource):
     status, version, version notes, first, last, previous
     """
 
-    URL_PATH = 'dataset'
+    URL_PATH = "dataset"
 
-    _CLASS_PROPERTIES = ['distribution', 'inSeries', 'temporal',
-                         'hasQualityMeasurement', 'isPartOf']
+    _WRITE_PROPERTIES = [
+        "distribution",
+        "inSeries",
+        "temporal",
+        "hasQualityMeasurement",
+        "isPartOf",
+        "title",
+        "license",
+        "theme",
+        "version",
+        "issued",
+        "publisher",
+        "creator",
+    ]
+    _READ_PROPERTIES = []
+    _CLASS_PROPERTIES = _READ_PROPERTIES + _WRITE_PROPERTIES
 
-    def __init__(self, fair_data_point: fdp.fairdatapoint.FairDataPoint = None,
-                 iri: str = None, uuid: str = None):
+    def __init__(
+        self,
+        fair_data_point: fdp.fairdatapoint.FairDataPoint = None,
+        iri: str = None,
+        uuid: str = None,
+    ):
         super().__init__(fair_data_point, iri, uuid)
 
         self._tainted = False
 
         self._rdf.bind("dqv", DQV)
 
-        self._rdf.add((
-            self._iri,
-            RDF.type,
-            DCAT.Dataset))
+        self._rdf.add((self._iri, RDF.type, DCAT.Dataset))
 
     ###########################################################################
     # DCATv3 Class properties                                                 #
@@ -61,21 +76,17 @@ class Dataset(Resource):
             else:
                 self._distribution.update({distribution.iri: distribution})
         else:
-            raise TypeError((f'Type {type(distribution)} not allowed for '
-                             '"distribution" argument'))
+            raise TypeError(
+                (
+                    f"Type {type(distribution)} not allowed for "
+                    '"distribution" argument'
+                )
+            )
 
         if distribution.uuid is not None:
-            self._rdf.add((
-                self._iri,
-                DCAT.distribution,
-                distribution.uuid
-            ))
+            self._rdf.add((self._iri, DCAT.distribution, distribution.uuid))
         else:
-            self._rdf.add((
-                self._iri,
-                DCAT.distribution,
-                distribution.iri
-            ))
+            self._rdf.add((self._iri, DCAT.distribution, distribution.iri))
 
             self._rdf += distribution.rdf
 
@@ -97,20 +108,24 @@ class Dataset(Resource):
 
             self._tainted = True
         else:
-            raise TypeError(("hasQualityMeasurement must be a "
-                             "DQVMeasurement's  class instance."))
+            raise TypeError(
+                (
+                    "hasQualityMeasurement must be a "
+                    "DQVMeasurement's  class instance."
+                )
+            )
 
-        self._rdf.add((
-            self._iri,
-            DCAT.hasQualityMeasurement,
-            self._hasQualityMeasurement.iri
-        ))
+        self._rdf.add(
+            (
+                self._iri,
+                DCAT.hasQualityMeasurement,
+                self._hasQualityMeasurement.iri,
+            )
+        )
 
-        self._rdf.add((
-            self._hasQualityMeasurement.iri,
-            DQV.computedOn,
-            self._iri
-        ))
+        self._rdf.add(
+            (self._hasQualityMeasurement.iri, DQV.computedOn, self._iri)
+        )
 
     @property
     def inSeries(self) -> dict:
@@ -128,14 +143,14 @@ class Dataset(Resource):
 
             self._tainted = True
         else:
-            raise TypeError(("inSeries must be a str or IdentifiedNode's "
-                             "class instance (BNode or URIRef)"))
+            raise TypeError(
+                (
+                    "inSeries must be a str or IdentifiedNode's "
+                    "class instance (BNode or URIRef)"
+                )
+            )
 
-        self._rdf.add((
-            self._iri,
-            DCAT.inSeries,
-            self._inSeries
-        ))
+        self._rdf.add((self._iri, DCAT.inSeries, self._inSeries))
 
     @property
     def isPartOf(self) -> dict:
@@ -153,14 +168,14 @@ class Dataset(Resource):
 
             self._tainted = True
         else:
-            raise TypeError(("isPartOf must be a str or IdentifiedNode's "
-                             "class instance (BNode or URIRef)"))
+            raise TypeError(
+                (
+                    "isPartOf must be a str or IdentifiedNode's "
+                    "class instance (BNode or URIRef)"
+                )
+            )
 
-        self._rdf.add((
-            self._iri,
-            DCTERMS.isPartOf,
-            self._isPartOf
-        ))
+        self._rdf.add((self._iri, DCTERMS.isPartOf, self._isPartOf))
 
     @property
     def temporal(self) -> dict:
@@ -175,14 +190,11 @@ class Dataset(Resource):
 
             self._tainted = True
         else:
-            raise TypeError(("temporal must be a PeriodOfTime's "
-                             "class instance"))
+            raise TypeError(
+                ("temporal must be a PeriodOfTime's " "class instance")
+            )
 
-        self._rdf.add((
-            self._iri,
-            DCTERMS.temporal,
-            self._temporal.iri
-        ))
+        self._rdf.add((self._iri, DCTERMS.temporal, self._temporal.iri))
 
     ###########################################################################
 
@@ -200,7 +212,8 @@ class Dataset(Resource):
         return self._rdf
 
     # def read(self, drafts: bool = False, override: bool = False):
-    #     """Populates the instance attributes with data read from the Fair Data
+    #     """Populates the instance attributes with data read from the Fair
+    #     Data
     #     Point.
 
     #     :param drafts: if true, retrieves also the drafts, if any
@@ -239,7 +252,8 @@ class Dataset(Resource):
 
     #         # Creator is a foaf:Agent, e.g. foaf:Group or foaf:Person
     #         # _creator = self._rdf.value(subject=self._iri,
-    #         #                            predicate=DCTERMS.creator, any=False)
+    #         #                            predicate=DCTERMS.creator,
+    #         any=False)
     #         # _creator_agent = self._rdf.value(
     #         #     subject=_creator, predicate=RDF.type
     #         # ).n3(self._rdf.namespace_manager)
@@ -251,7 +265,8 @@ class Dataset(Resource):
     #         #                                       predicate=FOAF.member,
     #         #                                       any=False)
 
-    #         #     for person in self._rdf.objects(_creator_member, FOAF.name):
+    #         #     for person in self._rdf.objects(_creator_member,
+    #         FOAF.name):
     #         #         _creator_list.append(str(person))
 
     #         _description = self._rdf.value(subject=self._iri,
@@ -303,7 +318,8 @@ class Dataset(Resource):
     # #             self._version = Version(self._schema['lastVersion'])
     # #         else:
     # #             r = self._rest_operator.get(
-    # #                 f'metadata-schemas/{self._uuid}', raise_for_status=False)
+    # #                 f'metadata-schemas/{self._uuid}',
+    # raise_for_status=False)
     # #             if r['code'] >= 400:
     # #                 return
     # #             self._schema = r['content']
@@ -330,45 +346,6 @@ class Dataset(Resource):
     #     self._description = self._schema['description']
     #     self._definition = self._schema['definition']
 
-    # def write(self, allow_update: bool = True, allow_duplicates: bool = False):
-    #     """Writes the instance attributes to the Fair Data Point.
-
-    #     :param allow_update: if true, override the instance's attribute;
-    #     :type allow_update: bool
-
-    #     :param allow_duplicates: write the catalog even if there are
-    #                               other catalogs with the same name.
-    #     :type allow_duplicates: bool
-
-    #     :raises AlreadyPresentError: if the catalog already exists in the Fair
-    #                                  Data Point and allow_duplicates is not
-    #                                  set.
-    #     """
-    #     # uuids = self.find(self._title)
-    #     # uuids = None
-
-    #     headers = {
-    #         'Content-Type': 'text/turtle',
-    #     }
-
-    #     if self._uuid is None or allow_duplicates:
-    #         r = self._fair_data_point._rest_operator.post('catalog',
-    #                                                       headers=headers,
-    #                                                       payload=self.rdf())
-    #         _rdf = Graph().parse(data=r['content'])
-    #         self._uuid = list(
-    #             _rdf.objects(None, DCTERMS.identifier, unique=True))[0]
-    #         self._uuid = self._uuid.rpartition('/')[2]
-
-    #     # elif allow_update:
-    #     #     r = self._rest_operator.put(f'metadata-schemas/{uuids[0]}/draft',
-    #     #                                 payload=self.payload)
-    #     #     self._uuid = r['content']['uuid']
-    #     # else:
-    #     #     raise AlreadyPresentError(
-    #     #         (f"Metadata schema \"{self.name}\" already present "
-    #     #           "in the Fair Data Point."))
-
     # def __str__(self):
     #     return (f"<Catalog uuid={self._uuid}, title=\'{self._title}\', "
     #             f"version={self._version}, "
@@ -382,19 +359,20 @@ class DatasetSeries(Dataset):
     :vartype uuid: str
     """
 
-    URL_PATH = 'dataset-series'
+    URL_PATH = "dataset-series"
 
-    _CLASS_PROPERTIES = []
+    # _CLASS_PROPERTIES = []
 
     __frozen = False
 
-    def __init__(self, fair_data_point: fdp.fairdatapoint.FairDataPoint = None,
-                 iri: str = None, uuid: str = None):
+    def __init__(
+        self,
+        fair_data_point: fdp.fairdatapoint.FairDataPoint = None,
+        iri: str = None,
+        uuid: str = None,
+    ):
         super().__init__(fair_data_point, iri, uuid)
 
         self._tainted = False
 
-        self._rdf.add((
-            self._iri,
-            RDF.type,
-            DCAT.DatasetSeries))
+        self._rdf.add((self._iri, RDF.type, DCAT.DatasetSeries))

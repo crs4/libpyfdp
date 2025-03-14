@@ -4,3 +4,4 @@ from . import base
 from . import foaf
 from . import metrics
 from . import version
+from . import catalog

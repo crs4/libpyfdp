@@ -1,8 +1,8 @@
 # pylint: disable=missing-module-docstring
 # pylint: disable=unidiomatic-typecheck,too-many-instance-attributes
 
-from rdflib import URIRef, BNode, IdentifiedNode
-from rdflib.namespace import DCAT, DCTERMS, RDF  # , XSD, SKOS
+from rdflib import URIRef, BNode, IdentifiedNode, Literal
+from rdflib.namespace import DCAT, DCTERMS, RDF, FOAF  # , XSD, SKOS
 
 import fdp.fairdatapoint
 from fdp.dataset import Dataset
@@ -18,8 +18,10 @@ class Catalog(Dataset):
 
     URL_PATH = 'catalog'
 
-    _CLASS_PROPERTIES = ['creator', 'description', 'homepage', 'issued',
+    _WRITE_PROPERTIES = ['creator', 'description', 'homepage', 'issued',
                          'license', 'publisher', 'title', 'version']
+    _READ_PROPERTIES = []
+    _CLASS_PROPERTIES = _READ_PROPERTIES + _WRITE_PROPERTIES
 
     def __init__(self, fair_data_point: fdp.fairdatapoint.FairDataPoint = None,
                  iri: str = None, uuid: str = None):
@@ -53,8 +55,29 @@ class Catalog(Dataset):
                 URIRef(self._fair_data_point.url)))
 
     ###########################################################################
-    # Catalog DCATv3 Class ispecific properties                               #
+    # Catalog DCATv3 Class specific properties                                #
     ###########################################################################
+
+    @property
+    def homepage(self):
+        """The ``foaf:homepage`` property."""
+        return self._homepage
+
+    @homepage.setter
+    def homepage(self, homepage: str or Literal):
+        if type(homepage) is str:
+            self._homepage = homepage
+        elif type(homepage) is Literal:
+            self._homepage = str(homepage)
+        else:
+            raise TypeError
+
+        self._rdf.add((
+            self._iri,
+            FOAF.homepage,
+            URIRef(self._homepage)))
+
+        self._tainted = True
 
     ###########################################################################
     def __str__(self):

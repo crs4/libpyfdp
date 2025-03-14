@@ -2,13 +2,17 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring
 # pylint: disable=unidiomatic-typecheck,too-many-instance-attributes
 # from collections.abc import MutableSequence, MutableMapping
+# from pathlib import Path
 import json
 import requests
+# from urllib.parse import urlparse
 
 import fdp
 
+from rdflib import Graph
 # from rdflib import Graph, URIRef
 # from rdflib.namespace import DCTERMS
+from rdflib.namespace import DCAT, RDF
 
 
 class SetEncoder(json.JSONEncoder):
@@ -151,7 +155,14 @@ class FairDataPointItem():
                                                payload=payload,
                                                headers=headers)
 
-        self._uuid = response['content']['uuid']
+        if self.CONTENT_TYPE == 'application/json':
+            self._uuid = response['content']['uuid']
+        elif self.CONTENT_TYPE == 'text/turtle':
+            _rdf = Graph().parse(data=response['content'])
+            self._uuid = _rdf.value(
+                predicate=RDF.type,
+                object=DCAT.Resource)
+#             self._uuid = Path(urlparse(self._uuid).path).name
 
         return response['content']
 

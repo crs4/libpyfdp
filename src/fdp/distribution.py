@@ -10,16 +10,16 @@ from fdp.resource import Resource
 SPDX = Namespace("http://spdx.org/rdf/terms#")
 
 
-class Checksum():
+class Checksum:
     """Class representing a DCATv3 package checksum."""
 
-    _CHECKSUM_PROPERTIES = ['algorithm', 'checksumValue']
+    _CHECKSUM_PROPERTIES = ["algorithm", "checksumValue"]
 
     __frozen = False
 
     def __init__(self, iri: str = None, uuid: str = None):
         for _p in self._CHECKSUM_PROPERTIES:
-            setattr(Checksum, f'_{_p}', None)
+            setattr(Checksum, f"_{_p}", None)
 
         self._rdf = Graph()
         self._rdf.bind("spdx", SPDX)
@@ -32,8 +32,9 @@ class Checksum():
             # elif type(iri) in [IdentifiedNode, URIRef, BNode]:
             #     self._iri = iri
             # else:
-            raise TypeError((f'Type {type(iri)} not allowed for '
-                             '"iri" argument'))
+            raise TypeError(
+                (f"Type {type(iri)} not allowed for " '"iri" argument')
+            )
         # elif self._uuid is not None:
         #     self._iri = URIRef(
         #         f'{self._fair_data_point}/resource/{self._uuid}')
@@ -47,10 +48,7 @@ class Checksum():
 
         self.__frozen = True
 
-        self._rdf.add((
-            self._iri,
-            RDF.type,
-            SPDX.Checksum))
+        self._rdf.add((self._iri, RDF.type, SPDX.Checksum))
 
     def __setattr__(self, key, value):
         if self.__frozen and not hasattr(self, key):
@@ -87,35 +85,37 @@ class Checksum():
         else:
             raise TypeError("algorithm property must be a str or a URIRef.")
 
-        self._rdf.add((
-            self._iri,
-            SPDX.algorithm,
-            URIRef(self._algorithm)))
+        self._rdf.add((self._iri, SPDX.algorithm, URIRef(self._algorithm)))
 
         self._tainted = True
 
     @property
     def checksumValue(self):
-        """ The ``spdx:checksumValue`` property."""
+        """The ``spdx:checksumValue`` property."""
         return self._checksumValue
 
     @checksumValue.setter
     def checksumValue(self, checksumValue: str or Literal):
         if type(checksumValue) is str:
             self._checksumValue = checksumValue
-        elif (type(checksumValue) is Literal and
-              checksumValue.datatype == XSD.hexBinary):
+        elif (
+            type(checksumValue) is Literal
+            and checksumValue.datatype == XSD.hexBinary
+        ):
             self._checksumValue = str(checksumValue)
         else:
-            raise TypeError("checksumValue property must be a str or a "
-                            "Literal of type xsd:hexBinary.")
+            raise TypeError(
+                "checksumValue property must be a str or a "
+                "Literal of type xsd:hexBinary."
+            )
 
-        self._rdf.add((
-            self._iri,
-            SPDX.checksumValue,
-            Literal(self._checksumValue,
-                    datatype=XSD.hexBinary)
-        ))
+        self._rdf.add(
+            (
+                self._iri,
+                SPDX.checksumValue,
+                Literal(self._checksumValue, datatype=XSD.hexBinary),
+            )
+        )
 
         self._tainted = True
 
@@ -127,14 +127,29 @@ class Distribution(Resource):
     downloadable file.
     """
 
-    URL_PATH = 'distribution'
+    URL_PATH = "distribution"
 
-    _CLASS_PROPERTIES = ['checksum', 'downloadURL',
-                         'mediaType', 'compressFormat', 'byteSize',
-                         'isPartOf']
+    _WRITE_PROPERTIES = [
+        "checksum",
+        "downloadURL",
+        "mediaType",
+        "compressFormat",
+        "byteSize",
+        "isPartOf",
+        "license",
+        "title",
+        "version",
+        "publisher",
+    ]
+    _READ_PROPERTIES = []
+    _CLASS_PROPERTIES = _READ_PROPERTIES + _WRITE_PROPERTIES
 
-    def __init__(self, fair_data_point: fdp.fairdatapoint.FairDataPoint = None,
-                 iri: str = None, uuid: str = None):
+    def __init__(
+        self,
+        fair_data_point: fdp.fairdatapoint.FairDataPoint = None,
+        iri: str = None,
+        uuid: str = None,
+    ):
         super().__init__(fair_data_point)
 
         self._rdf = Graph()
@@ -151,8 +166,9 @@ class Distribution(Resource):
             # elif type(iri) in [IdentifiedNode, URIRef, BNode]:
             #     self._iri = iri
             # else:
-            raise TypeError((f'Type {type(iri)} not allowed for '
-                             '"iri" argument'))
+            raise TypeError(
+                (f"Type {type(iri)} not allowed for " '"iri" argument')
+            )
         # elif self._uuid is not None:
         #     self._iri = URIRef(
         #         f'{self._fair_data_point}/resource/{self._uuid}')
@@ -164,10 +180,7 @@ class Distribution(Resource):
 
         self._tainted = False
 
-        self._rdf.add((
-            self._iri,
-            RDF.type,
-            DCAT.Distribution))
+        self._rdf.add((self._iri, RDF.type, DCAT.Distribution))
 
     @property
     def iri(self):
@@ -193,16 +206,13 @@ class Distribution(Resource):
         else:
             raise TypeError("downloadURL property must be a str or a URIRef.")
 
-        self._rdf.add((
-            self._iri,
-            DCAT.downloadURL,
-            URIRef(self._downloadURL)))
+        self._rdf.add((self._iri, DCAT.downloadURL, URIRef(self._downloadURL)))
 
         self._tainted = True
 
     @property
     def byteSize(self):
-        """ The ``dcat:byteSize`` property."""
+        """The ``dcat:byteSize`` property."""
         return self._byteSize
 
     @byteSize.setter
@@ -214,11 +224,13 @@ class Distribution(Resource):
         else:
             raise TypeError("byteSize property must be an int.")
 
-        self._rdf.add((
-            self._iri,
-            DCAT.byteSize,
-            Literal(self._byteSize,
-                    datatype=XSD.nonNegativeInteger)))
+        self._rdf.add(
+            (
+                self._iri,
+                DCAT.byteSize,
+                Literal(self._byteSize, datatype=XSD.nonNegativeInteger),
+            )
+        )
 
         self._tainted = True
 
@@ -234,13 +246,14 @@ class Distribution(Resource):
         elif type(mediaType) is URIRef:
             self._mediaType = str(mediaType)
         else:
-            raise TypeError(("mediaType property must be a str or a "
-                             "URIRef class instance."))
+            raise TypeError(
+                (
+                    "mediaType property must be a str or a "
+                    "URIRef class instance."
+                )
+            )
 
-        self._rdf.add((
-            self._iri,
-            DCAT.mediaType,
-            URIRef(self._mediaType)))
+        self._rdf.add((self._iri, DCAT.mediaType, URIRef(self._mediaType)))
 
         self._tainted = True
 
@@ -256,14 +269,16 @@ class Distribution(Resource):
         elif type(compressFormat) is URIRef:
             self._compressFormat = str(compressFormat)
         else:
-            raise TypeError(("compressFormat property must be a str or a "
-                             "URIRef class instance."))
+            raise TypeError(
+                (
+                    "compressFormat property must be a str or a "
+                    "URIRef class instance."
+                )
+            )
 
-        self._rdf.add((
-            self._iri,
-            DCAT.compressFormat,
-            URIRef(self._compressFormat)
-        ))
+        self._rdf.add(
+            (self._iri, DCAT.compressFormat, URIRef(self._compressFormat))
+        )
 
         self._tainted = True
 
@@ -277,16 +292,13 @@ class Distribution(Resource):
         if type(checksum) is Checksum:
             self._checksum = checksum
         else:
-            raise TypeError(("checksum property must be a Checksum "
-                             "class instance."))
+            raise TypeError(
+                ("checksum property must be a Checksum " "class instance.")
+            )
 
         self._rdf += self._checksum.rdf
 
-        self._rdf.add((
-            self._iri,
-            DCAT.checksum,
-            self._checksum.iri
-        ))
+        self._rdf.add((self._iri, DCAT.checksum, self._checksum.iri))
 
         self._tainted = True
 
@@ -306,11 +318,11 @@ class Distribution(Resource):
 
             self._tainted = True
         else:
-            raise TypeError(("isPartOf must be a str or IdentifiedNode's "
-                             "class instance (BNode or URIRef)"))
+            raise TypeError(
+                (
+                    "isPartOf must be a str or IdentifiedNode's "
+                    "class instance (BNode or URIRef)"
+                )
+            )
 
-        self._rdf.add((
-            self._iri,
-            DCTERMS.isPartOf,
-            self._isPartOf
-        ))
+        self._rdf.add((self._iri, DCTERMS.isPartOf, self._isPartOf))
