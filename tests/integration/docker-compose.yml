@@ -1,39 +1,46 @@
-version: '3'
-
 services:
+  fdp:
+    image: fairdata/fairdatapoint:latest
+    volumes:
+      - ./libpyfdp/tests/integration/application.yml:/fdp/application.yml:ro
+    depends_on:
+      init-graphdb:
+        condition: service_completed_successfully
+      graphdb:
+        condition: service_started
 
-    fdp:
-        image: fairdata/fairdatapoint:latest
-        volumes:
-            - ./application.yml:/fdp/application.yml:ro
-        # ports:
-        #     - 8880:80
+  fdp-client:
+    image: fairdata/fairdatapoint-client:latest
+    ports:
+      - 8888:80
+    environment:
+      - FDP_HOST=fdp
+    depends_on:
+      fdp:
+        condition: service_started
+      # volumes:
+      #     - ./_variables.scss:/src/scss/custom/_variables.scss:ro
 
-    fdp-client:
-        image: fairdata/fairdatapoint-client:latest
-        ports:
-            - 8888:80
-        environment:
-            - FDP_HOST=fdp
-        # volumes:
-        #     - ./_variables.scss:/src/scss/custom/_variables.scss:ro
+  mongo:
+    image: mongo:4.0.12
+    volumes:
+      - mongodb_volume:/data/db
 
-    mongo:
-        image: mongo:4.0.12
-        # ports:
-        #     - 27017:27017
-        volumes:
-            - mongodb_volume:/data/db
+  graphdb:
+    image: ontotext/graphdb:10.4.1
 
-    graphdb:
-        image: ontotext/graphdb:10.1.2
-        restart: always
-        hostname: graphdb
-        # ports:
-        #     - 9091:7200
-        volumes:
-            - graphdb_volume:/opt/graphdb/home
+  init-graphdb:
+    image: ontotext/graphdb:10.4.1
+    depends_on:
+      graphdb:
+        condition: service_started
+    volumes:
+      - ./scripts/fair_data_point.ttl:/fair_data_point.ttl
+      - ./scripts/init_graphdb.sh:/init_graphdb.sh
+    environment:
+      GRAPHDB_URL: http://graphdb:7200
+    entrypoint: /init_graphdb.sh
 
 volumes:
-    mongodb_volume:
-    graphdb_volume:
+  mongodb_volume:
+  graphdb_volume:
