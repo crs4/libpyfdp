@@ -239,3 +239,13 @@ class ResourceDefinition(FairDataPointItem):
                 setattr(self, f"_{k}", v)
             else:
                 print(f"Unknown {k}: {v}")
+
+    def get_by_name(self, name: str, ignore_case: bool = False):
+        rdefs = self.get_all()
+        for rdef in rdefs:
+            if ignore_case:
+                if rdef.name.lower() == name.lower():
+                    return rdef
+            else:
+                if rdef.name == name:
+                    return rdef
