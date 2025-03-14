@@ -58,10 +58,32 @@ class FairDataPoint():
     def __str__(self):
         return f'<Fair Data Point client pointing to {self._url}>'
 
+    def get(self, path: str, uuid: str = None, **kwargs):
+        if uuid:
+            if kwargs.get('draft', False):
+                kwargs = {k: v for k, v in kwargs.items() if k not in
+                          ['draft']}
+
+                r = self._rest_operator.get(f"{path}/{uuid}/draft", **kwargs)
+            else:
+                r = self._rest_operator.get(f"{path}/{uuid}", **kwargs)
+        else:
+            r = self._rest_operator.get(path, **kwargs)
+
+        return r
+
     def write(self, path: str, payload: str, headers: dict or None):
         r = self._rest_operator.post(path,
                                      headers=headers,
                                      payload=payload)
+
+        return r
+
+    def update(self, path: str, uuid: str, payload: str,
+               headers: dict or None):
+        r = self._rest_operator.put(f"{path}/{uuid}",
+                                    headers=headers,
+                                    payload=payload)
 
         return r
 
@@ -82,17 +104,3 @@ class FairDataPoint():
         else:
             raise TypeError((f'Type {type(fairdatapointitem)} not allowed for '
                              '"delete" argument'))
-
-    def get(self, path: str, uuid: str = None, **kwargs):
-        if uuid:
-            if kwargs.get('draft', False):
-                kwargs = {k: v for k, v in kwargs.items() if k not in
-                          ['draft']}
-
-                r = self._rest_operator.get(f"{path}/{uuid}/draft", **kwargs)
-            else:
-                r = self._rest_operator.get(f"{path}/{uuid}", **kwargs)
-        else:
-            r = self._rest_operator.get(path, **kwargs)
-
-        return r

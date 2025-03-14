@@ -166,6 +166,29 @@ class FairDataPointItem():
 
         return response['content']
 
+    def _update(self, **kwargs):
+        """Updates the instance attributes to the Fair Data Point.
+        """
+
+        headers = {
+            'Content-Type': self.CONTENT_TYPE
+        }
+
+        payload = self._content()
+
+        try:
+            element = self._fair_data_point.update(self.URL_PATH,
+                                                   uuid=self.uuid,
+                                                   payload=payload,
+                                                   headers=headers)
+
+            self._content_setter(element['content'])
+        except requests.exceptions.HTTPError as htex:
+            if htex.response.status_code == 404:
+                raise NotPresentError()
+            else:
+                raise htex
+
     def _get(self, uuid: str, **kwargs):
         if uuid is not None:
             try:
@@ -255,6 +278,14 @@ class FairDataPointItem():
         else:
             self._write()
 
+    def update(self):
+        """Update an existing Fair Data Point Item."""
+        if not self._uuid:
+            raise LibFDPError(
+                "The instance has no UUID: use create() function instead.")
+        else:
+            self._update()
+
     def delete(self):
         """Deletes a Fair Data Point Item from the Fair Data Point. On success, UUID
         attribute is set to None"""
@@ -292,7 +323,7 @@ class FairDataPointItem():
         :return: a dictionary with the class's properties.
         :rtype: dict
         """
-        return {_p: getattr(self, _p) for _p in self._CLASS_PROPERTIES}
+        return {_p: getattr(self, f"_{_p}") for _p in self._CLASS_PROPERTIES}
 
     def check_duplicates(self, ignore_case: bool = False):
         """Commodity function that checks if the given Item is already present
@@ -310,7 +341,7 @@ class FairDataPointItem():
         element_list = self.get_all()
         for element in element_list:
             if ignore_case:
-                if element.name.tolower() == self.name.tolower():
+                if element.name.lower() == self.name.lower():
                     return True
             else:
                 if element.name == self.name:
