@@ -30,7 +30,7 @@ class FairDataPoint():
 
     @property
     def url(self) -> str:
-        """The uri of the Fair Data Point."""
+        """The url of the Fair Data Point."""
         return self._url
 
     def find_catalogs(self) -> dict:
@@ -59,6 +59,22 @@ class FairDataPoint():
         return f'<Fair Data Point client pointing to {self._url}>'
 
     def get(self, path: str, uuid: str = None, **kwargs):
+        """Retrieve an item from the Fair Data Point.
+
+        :param path: the path to access
+        :type path: str
+
+        :param uuid: the uuid of the item to retrieve.
+        :type path: str
+
+        :param * * kwargs: custom arguments
+
+        .note: passing `draft=True` as kwargs result in the retrieve of items
+        in draft state instead of the published ones.
+
+        :return: the response of the Fair Data Point server.
+        :rtype: dict, see the rest module's `get` function.
+        """
         if uuid:
             if kwargs.get('draft', False):
                 kwargs = {k: v for k, v in kwargs.items() if k not in
@@ -80,8 +96,29 @@ class FairDataPoint():
         return r
 
     def update(self, path: str, uuid: str, payload: str,
-               headers: dict or None):
-        r = self._rest_operator.put(f"{path}/{uuid}",
+               headers: dict or None, **kwargs):
+        """Update an item in the Fair Data Point.
+
+        :param path: the path to access
+        :type path: str
+
+        :param uuid: the uuid of the item to retrieve.
+        :type path: str
+
+        :param payload: the content to update
+        :type path: str
+
+        :param headers: the headers for the update
+        :type path: dict
+
+        :return: the response of the Fair Data Point server.
+        :rtype: dict, see the rest module's `put` function.
+        """
+        if kwargs.get('draft', False):
+            uri = f"{path}/{uuid}/draft"
+        else:
+            uri = f"{path}/{uuid}"
+        r = self._rest_operator.put(uri,
                                     headers=headers,
                                     payload=payload)
 
