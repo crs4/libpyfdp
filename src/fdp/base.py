@@ -180,7 +180,8 @@ class FairDataPointItem():
             element = self._fair_data_point.update(self.URL_PATH,
                                                    uuid=self.uuid,
                                                    payload=payload,
-                                                   headers=headers)
+                                                   headers=headers,
+                                                   **kwargs)
 
             self._content_setter(element['content'])
         except requests.exceptions.HTTPError as htex:
@@ -278,13 +279,13 @@ class FairDataPointItem():
         else:
             self._write()
 
-    def update(self):
+    def update(self, **kwargs):
         """Update an existing Fair Data Point Item."""
         if not self._uuid:
             raise LibFDPError(
                 "The instance has no UUID: use create() function instead.")
         else:
-            self._update()
+            self._update(**kwargs)
 
     def delete(self):
         """Deletes a Fair Data Point Item from the Fair Data Point. On success, UUID
