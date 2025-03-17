@@ -17,7 +17,8 @@ class MetadataSchema(FairDataPointItem):
     CONTENT_TYPE = 'application/json'
 
     _READ_PROPERTIES = ['extendSchemaUuids', 'childSchemaUuids', 'latest',
-                        'uuid', 'draft', 'versions', 'lastVersion']
+                        'uuid', 'draft', 'versions', 'lastVersion', 'version',
+                        'published']
     _WRITE_PROPERTIES = ['name', 'suggestedResourceName', 'description',
                          'abstractSchema', 'extendsSchemaUuids',
                          'suggestedUrlPrefix',
@@ -90,11 +91,14 @@ class MetadataSchema(FairDataPointItem):
         return self._suggestedResourceName
 
     @suggestedResourceName.setter
-    def suggestedResourceName(self, suggestedResourceName: str):
+    def suggestedResourceName(self, suggestedResourceName: str | None):
         if type(suggestedResourceName) is str:
             self._suggestedResourceName = suggestedResourceName
+        elif suggestedResourceName is None:
+            self._suggestedResourceName = None
         else:
-            raise TypeError
+            raise TypeError(f"Value '{suggestedResourceName}' for "
+                            "suggestedResourceName property is not valid.")
 
         self._tainted = True
 
@@ -107,8 +111,11 @@ class MetadataSchema(FairDataPointItem):
     def suggestedUrlPrefix(self, suggestedUrlPrefix: str):
         if type(suggestedUrlPrefix) is str:
             self._suggestedUrlPrefix = suggestedUrlPrefix
+        elif suggestedUrlPrefix is None:
+            self._suggestedUrlPrefix = None
         else:
-            raise TypeError
+            raise TypeError(f"Value '{suggestedUrlPrefix}' for "
+                            "suggestedUrlPrefix property is not valid.")
 
         self._tainted = True
 
@@ -227,6 +234,9 @@ class MetadataSchema(FairDataPointItem):
         return json.dumps(content_dict, cls=SetEncoder)
 
     def _content_setter(self, content: dict):
+        if 'latest' in content:
+            content = content['latest']
+
         for k in content:
             v = content[k]
 
@@ -249,3 +259,18 @@ class MetadataSchema(FairDataPointItem):
         """Deletes a Metadata Schema from the Fair Data Point. On success, UUID
         attribute is set to None"""
         super().delete()
+
+    def update(self):
+        """Deletes a Metadata Schema from the Fair Data Point. On success, UUID
+        attribute is set to None"""
+        super().update(draft=True)
+
+    def get_by_name(self, name: str, ignore_case: bool = False):
+        mss = self.get_all()
+        for ms in mss:
+            if ignore_case:
+                if ms.name.lower() == name.lower():
+                    return ms
+            else:
+                if ms.name == name:
+                    return ms
