@@ -42,7 +42,7 @@ class PointDensityDimension():
         #     f"/distribution/{house_name}.zip")
         else:
             # self._iri = BNode()
-            self._iri = URIRef(":dataDensityDimension")
+            self._iri = URIRef("cadiglab:dataDensityDimension")
 
         self._tainted = False
 
@@ -133,7 +133,7 @@ class PointDensityMetric():
         #     f"/distribution/{house_name}.zip")
         else:
             # self._iri = BNode()
-            self._iri = URIRef(":dataDensityMetric")
+            self._iri = URIRef("cadiglab:dataDensityMetric")
 
         self._tainted = False
 
@@ -216,7 +216,7 @@ class DQVMeasurement():
         #     f"/distribution/{house_name}.zip")
         else:
             # self._iri = BNode()
-            self._iri = URIRef(":densityMeasurement")
+            self._iri = URIRef("cadiglab:densityMeasurement")
 
         self._tainted = False
 
