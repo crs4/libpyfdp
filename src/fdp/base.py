@@ -125,7 +125,7 @@ class FairDataPointItem():
             "published": False
         })
 
-        self._fair_data_point.write(
+        self._fair_data_point.create(
             f"{self.URL_PATH}/{self.uuid}/versions",
             payload=payload,
             headers=headers)
@@ -151,9 +151,9 @@ class FairDataPointItem():
 
         payload = self._content()
 
-        response = self._fair_data_point.write(self.URL_PATH,
-                                               payload=payload,
-                                               headers=headers)
+        response = self._fair_data_point.create(self.URL_PATH,
+                                                payload=payload,
+                                                headers=headers)
 
         if self.CONTENT_TYPE == 'application/json':
             self._uuid = response['content']['uuid']

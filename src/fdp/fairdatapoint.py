@@ -67,10 +67,10 @@ class FairDataPoint():
         :param uuid: the uuid of the item to retrieve.
         :type path: str
 
-        :param * * kwargs: custom arguments
+        :param kwargs: custom arguments
 
-        .note: passing `draft=True` as kwargs result in the retrieve of items
-        in draft state instead of the published ones.
+        .. note:: passing `draft=True` as kwargs result in the retrieve of
+           items in draft state instead of the published ones.
 
         :return: the response of the Fair Data Point server.
         :rtype: dict, see the rest module's `get` function.
@@ -88,10 +88,27 @@ class FairDataPoint():
 
         return r
 
-    def write(self, path: str, payload: str, headers: dict or None):
+    def create(self, path: str, payload: str, headers: dict | None, **kwargs):
+        """Create a new item to the Fair Data Point.
+
+        :param path: the path to access
+        :type path: str
+
+        :param payload: the content to update
+        :type path: str
+
+        :param headers: the headers for the update
+        :type path: dict
+
+        :param * * kwargs: custom arguments
+
+        :return: the response of the Fair Data Point server.
+        :rtype: dict, see the rest module's `post` function.
+        """
         r = self._rest_operator.post(path,
                                      headers=headers,
-                                     payload=payload)
+                                     payload=payload,
+                                     **kwargs)
 
         return r
 
