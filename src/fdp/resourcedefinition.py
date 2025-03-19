@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 
+from fdp.fairdatapoint import FairDataPoint
 import fdp.fairdatapoint
 from fdp.base import FairDataPointItem
 from fdp.base import SetEncoder
@@ -22,11 +23,15 @@ class ResourceDefinition(FairDataPointItem):
                          'children', 'externalLinks']
     _CLASS_PROPERTIES = _READ_PROPERTIES + _WRITE_PROPERTIES
 
-    def __init__(self, fair_data_point: fdp.fairdatapoint.FairDataPoint = None,
+    def __init__(self, fair_data_point: FairDataPoint = None,
                  uuid: str = None):
         super().__init__(fair_data_point)
 
         self._uuid = uuid
+
+    def __str__(self):
+        return (f"<ResourceDefinition uuid={self._uuid}, name=\"{self._name}\""
+                ", {}>".format("tainted" if self._tainted else "not tainted"))
 
     @property
     def name(self) -> str:
@@ -240,8 +245,21 @@ class ResourceDefinition(FairDataPointItem):
             else:
                 print(f"Unknown {k}: {v}")
 
-    def get_by_name(self, name: str, ignore_case: bool = False):
-        rdefs = self.get_all()
+    def get_by_name(self,
+                    name: str,
+                    ignore_case: bool = False):
+        """Retrieve the Resource Definition with the given name.
+
+        :param name: the name of the resource definition to retrieve
+        :type path: str
+
+        :param ignore_case: if True, performs a case-insensitive search
+        :type path: bool
+
+        :return: the Resource Definition or None
+        :rtype: ResourceDefinition
+        """
+        rdefs = self.list()
         for rdef in rdefs:
             if ignore_case:
                 if rdef.name.lower() == name.lower():
@@ -249,3 +267,40 @@ class ResourceDefinition(FairDataPointItem):
             else:
                 if rdef.name == name:
                     return rdef
+
+    def get_by_uuid(self,
+                    uuid: str):
+        """Retrieve the Resource Definition with the given uuid.
+
+        :param uuid: the uuid of the resource definition to retrieve
+        :type path: str
+
+        :return: the Resource Definition or None
+        :rtype: ResourceDefinition
+        """
+        rd = self._fair_data_point.get(
+            self.URL_PATH,
+            uuid=uuid)['content']
+
+        _item = self.__class__(self._fair_data_point)
+        _item._content_setter(rd)
+
+        return _item
+
+    def list(self):
+        """Retrieve the list of all the Metadata Schemas.
+
+        :return: a list of the Metadata Schema
+        :rtype: list[MetadataSchema]
+        """
+        rd_list = self._fair_data_point.get(
+            self.URL_PATH)['content']
+
+        return_list = []
+
+        for rd in rd_list:
+            _item = self.__class__(self._fair_data_point)
+            _item._content_setter(rd)
+            return_list.append(_item)
+
+        return return_list
