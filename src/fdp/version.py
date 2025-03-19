@@ -73,6 +73,21 @@ class Version(object):
 
         return None
 
+    def inc_major(self):
+        """Increase the major number."""
+        self._major = self._major + 1
+        return self
+
+    def inc_minor(self):
+        """Increase the minor number."""
+        self._minor = self._minor + 1
+        return self
+
+    def inc_patch(self):
+        """Increase the patch number."""
+        self._patch = self._patch + 1
+        return self
+
     def __str__(self):
         return (f"<Version: {self.as_str()}, major: {self._major}, "
                 f"minor: {self._minor}, patch: {self._patch}>")
