@@ -8,6 +8,8 @@ import rdflib
 from fdp.fairdatapoint import FairDataPoint
 from fdp.base import FairDataPointItem
 from fdp.base import SetEncoder
+from fdp.base import NotPresentError
+from fdp.version import Version
 
 
 class MetadataSchema(FairDataPointItem):
@@ -198,24 +200,23 @@ class MetadataSchema(FairDataPointItem):
 #             self._version = version
 #         else:
 #             raise ValueError
-#
-#     def publish(self):
-#         if self._uuid is None:
-#             raise NotPresentError((
-#                 "Attempting to publish a Metadata Schema that does not exist.
-#                 " "Metadata Schema must be present in the Fair Data Point to
-#                 be "
-#                 "published."))
-#
-#         payload = {
-#             "version": self._version.as_str(),
-#             "description": self.description,
-#             # "published": "true"
-#         }
-#
-#         _ =
-#         self._rest_operator.post(f'metadata-schemas/{self._uuid}/versions',
-#                                      payload=payload)
+
+    def publish(self, version: Version = None, comment: str = None):
+        if self._uuid is None:
+            raise NotPresentError((
+                "Attempting to publish a Metadata Schema that does not exist. "
+                "Metadata Schema must be present in the Fair Data Point to be "
+                "published."))
+
+        payload = {
+            "version": self._version.as_str(),
+            "description": comment,
+            "published": "true"
+        }
+
+        _ = self._fair_data_point._rest_operator.post(
+            f'metadata-schemas/{self._uuid}/versions',
+            payload=payload)
 
 #     def __str__(self):
 #         return (f"<MetadataSchema uuid={self._uuid}, name=\"{self._name}\", "
@@ -234,9 +235,6 @@ class MetadataSchema(FairDataPointItem):
         return json.dumps(content_dict, cls=SetEncoder)
 
     def _content_setter(self, content: dict):
-        if 'latest' in content:
-            content = content['latest']
-
         for k in content:
             v = content[k]
 
@@ -265,8 +263,26 @@ class MetadataSchema(FairDataPointItem):
         attribute is set to None"""
         super().update(draft=True)
 
-    def get_by_name(self, name: str, ignore_case: bool = False):
-        mss = self.get_all()
+    def get_by_name(self,
+                    name: str,
+                    ignore_case: bool = False,
+                    draft: bool = False):
+        """Retrieve the Metadata Schema with the given name.
+
+        :param name: the name of the metadata schema to retrieve
+        :type path: str
+
+        :param ignore_case: if True, performs a case-insensitive search
+        :type path: bool
+
+        :param draft: if True, retrieves the draft of the Metadata Schema
+        drafts, if any
+        :type path: bool
+
+        :return: the Metadata Schema or None
+        :rtype: MetadataSchema
+        """
+        mss = self.list(draft=draft)
         for ms in mss:
             if ignore_case:
                 if ms.name.lower() == name.lower():
@@ -274,3 +290,65 @@ class MetadataSchema(FairDataPointItem):
             else:
                 if ms.name == name:
                     return ms
+
+    def get_by_uuid(self,
+                    uuid: str,
+                    draft: bool = False):
+        """Retrieve the Metadata Schema with the given uuid.
+
+        :param uuid: the uuid of the metadata schema to retrieve
+        :type path: str
+
+        :param draft: if True, retrieves the draft of the Metadata Schema
+        drafts, if any
+        :type path: bool
+
+        :return: the Metadata Schema or None
+        :rtype: MetadataSchema
+        """
+        ms = self._fair_data_point.get(
+            self.URL_PATH,
+            uuid=uuid,
+            drafts="true" if draft else "false")['content']
+
+        if draft:
+            _data = ms.get("draft", None)
+        else:
+            _data = ms.get("latest", None)
+
+        if _data is None:
+            return None
+
+        _item = self.__class__(self._fair_data_point)
+        _item._content_setter(_data)
+
+        return _item
+
+    def list(self, draft: bool = False):
+        """Retrieve the list of all the Metadata Schemas.
+
+        :param draft: if True, retrieves only the list of Metadata Schemas'
+        drafts, if any
+        :type path: bool
+
+        :return: a list of the Metadata Schema
+        :rtype: list[MetadataSchema]
+        """
+        ms_list = self._fair_data_point.get(
+            self.URL_PATH,
+            drafts="true" if draft else "false")['content']
+
+        return_list = []
+
+        for ms in ms_list:
+            if draft:
+                _data = ms.get("draft", None)
+            else:
+                _data = ms.get("latest", None)
+
+            if _data is not None:
+                _item = self.__class__(self._fair_data_point)
+                _item._content_setter(_data)
+                return_list.append(_item)
+
+        return return_list
