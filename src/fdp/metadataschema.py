@@ -24,7 +24,7 @@ class MetadataSchema(FairDataPointItem):
     _WRITE_PROPERTIES = ['name', 'suggestedResourceName', 'description',
                          'abstractSchema', 'extendsSchemaUuids',
                          'suggestedUrlPrefix',
-                         'definition']
+                         'definition', 'version']
     _CLASS_PROPERTIES = _READ_PROPERTIES + _WRITE_PROPERTIES
 
     def __init__(self, fair_data_point: FairDataPoint = None,
@@ -32,6 +32,11 @@ class MetadataSchema(FairDataPointItem):
         super().__init__(fair_data_point)
 
         self._uuid = uuid
+
+    def __str__(self):
+        return (f"<MetadataSchema uuid={self._uuid}, name=\"{self._name}\", "
+                "{}{}>".format("tainted" if self._tainted else "not tainted",
+                               ", draft" if self._draft else ""))
 
     @property
     def name(self) -> str:
@@ -186,20 +191,25 @@ class MetadataSchema(FairDataPointItem):
                 else:
                     self._extendsSchemaUuids.add(_new_metadata_schema)
 
-#     @property
-#     def version(self) -> str:
-#         """The version attribute."""
-#         return self._version
-#
-#     @version.setter
-#     def version(self, version: str or Version) -> str:
-#         """The version attribute."""
-#         if isinstance(version, str):
-#             self._version = Version(version)
-#         elif isinstance(version, Version):
-#             self._version = version
-#         else:
-#             raise ValueError
+    @property
+    def version(self) -> str:
+        """The version attribute."""
+        return self._version
+
+    @version.setter
+    def version(
+        self, version: str | Version | int | tuple(int, int, int)
+    ):
+        if type(version) is str:
+            self._version = Version(version=version)
+        elif type(version) is tuple:
+            self._version = Version(version=version)
+        elif type(version) is Version:
+            self._version = version
+        elif type(version) is int:
+            self._version = Version(major=version, minor=0, patch=0)
+        else:
+            raise TypeError("version must be a Version's class valid value.")
 
     def publish(self, version: Version = None, comment: str = None):
         if self._uuid is None:
@@ -209,24 +219,14 @@ class MetadataSchema(FairDataPointItem):
                 "published."))
 
         payload = {
-            "version": self._version.as_str(),
+            "version": version.as_str(),
             "description": comment,
-            "published": "true"
+            "published": "false"
         }
 
         _ = self._fair_data_point._rest_operator.post(
             f'metadata-schemas/{self._uuid}/versions',
-            payload=payload)
-
-#     def __str__(self):
-#         return (f"<MetadataSchema uuid={self._uuid}, name=\"{self._name}\", "
-#                 f"version={self._version}, "
-#                 "{}>".format("Tainted" if self._tainted else "NotTainted"))
-
-    def __str__(self):
-        return (f"<MetadataSchema uuid={self._uuid}, name=\"{self._name}\", "
-                "{}{}>".format("tainted" if self._tainted else "not tainted",
-                               ", draft" if self._draft else ""))
+            payload=json.dumps(payload))
 
     def _content(self):
         content_dict = {k: getattr(self, k) for k in
@@ -246,8 +246,8 @@ class MetadataSchema(FairDataPointItem):
                     setattr(self, k, v)
             elif k in self._READ_PROPERTIES:
                 setattr(self, f"_{k}", v)
-            else:
-                print(f"Unknown {k}: {v}")
+            # else:
+            #     print(f"Unknown {k}: {v}")
 
     def create(self):
         """Creates a new Metadata Schema."""
