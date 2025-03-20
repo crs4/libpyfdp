@@ -1,7 +1,7 @@
-fdp.catalog
------------
+fdp.resource
+------------
 
-.. automodule:: fdp.catalog
+.. automodule:: fdp.resource
    :members:
    :undoc-members:
    :show-inheritance:

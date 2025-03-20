@@ -1,8 +1,5 @@
-Submodules
-----------
-
-fdp.resourcedefinition module
------------------------------
+fdp.resourcedefinition
+----------------------
 
 .. automodule:: fdp.resourcedefinition
    :members:

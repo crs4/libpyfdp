@@ -1,8 +1,5 @@
-Submodules
-----------
-
-fdp.metadataschema module
--------------------------
+fdp.metadataschema
+------------------
 
 .. automodule:: fdp.metadataschema
    :members:

@@ -1,7 +1,7 @@
-fdp.catalog
+fdp.dataset
 -----------
 
-.. automodule:: fdp.catalog
+.. automodule:: fdp.dataset
    :members:
    :undoc-members:
    :show-inheritance:

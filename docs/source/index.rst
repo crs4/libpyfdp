@@ -7,16 +7,27 @@ Welcome to LibPyFDP's documentation!
 ====================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 1
+   :caption: Modules
 
-   modules
+   fairdatapoint
+   metadataschema
+   resourcedefinition
 
+   resource
+   catalog
+   dataset
+   distribution
 
+.. foaf
+.. metrics
+.. rest
+.. time
+.. version
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. Indices and tables
+.. ==================
+.. 
+.. * :ref:`genindex`
+.. * :ref:`modindex`
+.. * :ref:`search`

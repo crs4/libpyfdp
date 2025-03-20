@@ -1,9 +1,7 @@
-fdp.fairdatapoint module
-------------------------
+fdp.fairdatapoint
+-----------------
 
 .. automodule:: fdp.fairdatapoint
    :members:
    :undoc-members:
    :show-inheritance:
-
-
