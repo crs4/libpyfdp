@@ -246,8 +246,8 @@ class MetadataSchema(FairDataPointItem):
                     setattr(self, k, v)
             elif k in self._READ_PROPERTIES:
                 setattr(self, f"_{k}", v)
-            # else:
-            #     print(f"Unknown {k}: {v}")
+#             else:
+#                 print(f"Unknown {k}: {v}")
 
     def create(self):
         """Creates a new Metadata Schema."""
@@ -276,7 +276,7 @@ class MetadataSchema(FairDataPointItem):
         :type path: bool
 
         :param draft: if True, retrieves the draft of the Metadata Schema
-        drafts, if any
+            drafts, if any
         :type path: bool
 
         :return: the Metadata Schema or None
@@ -300,7 +300,7 @@ class MetadataSchema(FairDataPointItem):
         :type path: str
 
         :param draft: if True, retrieves the draft of the Metadata Schema
-        drafts, if any
+            drafts, if any
         :type path: bool
 
         :return: the Metadata Schema or None
@@ -328,7 +328,7 @@ class MetadataSchema(FairDataPointItem):
         """Retrieve the list of all the Metadata Schemas.
 
         :param draft: if True, retrieves only the list of Metadata Schemas'
-        drafts, if any
+            drafts, if any
         :type path: bool
 
         :return: a list of the Metadata Schema
