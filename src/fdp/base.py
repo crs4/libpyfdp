@@ -19,6 +19,8 @@ class SetEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, set):
             return list(obj)
+        elif isinstance(obj, fdp.version.Version):
+            return obj.as_str()
         return json.JSONEncoder.default(self, obj)
 
 
