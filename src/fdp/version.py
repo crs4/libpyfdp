@@ -89,8 +89,8 @@ class Version(object):
         return self
 
     def __str__(self):
-        return (f"<Version: {self.as_str()}, major: {self._major}, "
-                f"minor: {self._minor}, patch: {self._patch}>")
+        return self.as_str()
 
     def __repr__(self):
-        return self.__str__()
+        return (f"<Version: {self.as_str()}, major: {self._major}, "
+                f"minor: {self._minor}, patch: {self._patch}>")

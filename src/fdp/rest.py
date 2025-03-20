@@ -103,8 +103,6 @@ class RestOperator(object):
             **default_headers, **headers} if headers is not None else
             default_headers)
 
-        # payload = json.dumps(payload)
-
         response = requests.request(
             "POST",
             f"{self.base_url}/{uri}",
