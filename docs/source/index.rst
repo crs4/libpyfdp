@@ -11,6 +11,7 @@ Welcome to LibPyFDP's documentation!
    :caption: Modules
 
    fairdatapoint
+   fairdatapointfinder
    metadataschema
    resourcedefinition
 

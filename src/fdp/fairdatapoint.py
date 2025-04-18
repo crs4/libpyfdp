@@ -4,6 +4,7 @@
 import warnings
 
 import fdp
+from fdp.fairdatapointfinder import FairDataPointFinder
 
 from rdflib import Graph, Namespace
 
@@ -18,6 +19,7 @@ class FairDataPoint():
     def __init__(self, url: str = 'http://127.0.0.1', token: str = None):
         self._url = url
         self._rest_operator = fdp.rest.RestOperator(self._url, token)
+        self._finder = None
 
     @property
     def rest_operator(self) -> str:
@@ -158,3 +160,7 @@ class FairDataPoint():
         else:
             raise TypeError((f'Type {type(fairdatapointitem)} not allowed for '
                              '"delete" argument'))
+
+    @property
+    def finder(self) -> FairDataPointFinder:
+        return self._finder or FairDataPointFinder(self)
