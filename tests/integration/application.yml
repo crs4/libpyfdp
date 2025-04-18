@@ -1,6 +1,6 @@
 instance:
-    clientUrl: http://fdp:8000/
-    persistentUrl: http://fdp:8000/
+    clientUrl: http://fdp
+    persistentUrl: http://fdp
 
 ping:
     enabled: false
