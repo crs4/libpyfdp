@@ -346,10 +346,9 @@ class Dataset(Resource):
     #     self._description = self._schema['description']
     #     self._definition = self._schema['definition']
 
-    # def __str__(self):
-    #     return (f"<Catalog uuid={self._uuid}, title=\'{self._title}\', "
-    #             f"version={self._version}, "
-    #             "{}>".format("Tainted" if self._tainted else "NotTainted"))
+    def __str__(self):
+        return (f"<Dataset uuid={self._uuid}, title=\"{self._title}\""
+                ", {}>".format("tainted" if self._tainted else "not tainted"))
 
 
 class DatasetSeries(Dataset):
