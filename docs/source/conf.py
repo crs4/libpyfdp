@@ -21,7 +21,8 @@ release = '0.0.1'
 
 extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.autosummary',
-              'sphinx.ext.napoleon']
+              'sphinx.ext.napoleon',
+              'sphinx_favicon']
 
 templates_path = ['_templates']
 exclude_patterns = []
@@ -42,3 +43,6 @@ autodoc_member_order = 'bysource'
 html_theme = "furo"
 
 html_static_path = ['_static']
+favicons = [
+    'favicon.ico',
+]

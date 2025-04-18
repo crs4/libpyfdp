@@ -1,3 +1,4 @@
 Sphinx
 cloud-sptheme
 furo
+sphinx-favicon
