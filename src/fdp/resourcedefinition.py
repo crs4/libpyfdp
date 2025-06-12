@@ -5,8 +5,7 @@ from __future__ import annotations
 import json
 
 from fdp.fairdatapoint import FairDataPoint
-import fdp.fairdatapoint
-from fdp.base import FairDataPointItem
+from fdp.fairdatapointitem import FairDataPointItem
 from fdp.base import SetEncoder
 from fdp.metadataschema import MetadataSchema
 

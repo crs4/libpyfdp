@@ -5,10 +5,9 @@ from __future__ import annotations
 import json
 import rdflib
 
+from fdp.base import SetEncoder, NotPresentError
 from fdp.fairdatapoint import FairDataPoint
-from fdp.base import FairDataPointItem
-from fdp.base import SetEncoder
-from fdp.base import NotPresentError
+from fdp.fairdatapointitem import FairDataPointItem
 from fdp.version import Version
 
 
