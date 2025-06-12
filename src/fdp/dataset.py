@@ -5,10 +5,11 @@ import fdp.fairdatapoint
 from fdp.resource import Resource
 from fdp.distribution import Distribution
 from fdp.time import PeriodOfTime
-from fdp.metrics import DQVMeasurement
+from fdp.metrics import CompletenessMeasurement
 
 DQV = Namespace("http://www.w3.org/ns/dqv#")
 SPDX = Namespace("http://spdx.org/rdf/terms#")
+LDQD = Namespace("https://www.w3.org/2016/05/ldqd#")
 
 
 class Dataset(Resource):
@@ -63,6 +64,7 @@ class Dataset(Resource):
         self._tainted = False
 
         self._rdf.bind("dqv", DQV)
+        self._rdf.bind("ldqd", LDQD)
 
         self._rdf.add((self._iri, RDF.type, DCAT.Dataset))
 
@@ -101,8 +103,9 @@ class Dataset(Resource):
         return self._hasQualityMeasurement
 
     @hasQualityMeasurement.setter
-    def hasQualityMeasurement(self, quality_measurement: DQVMeasurement):
-        if isinstance(quality_measurement, DQVMeasurement):
+    def hasQualityMeasurement(self,
+                              quality_measurement: CompletenessMeasurement):
+        if isinstance(quality_measurement, CompletenessMeasurement):
             self._hasQualityMeasurement = quality_measurement
             self._rdf += self._hasQualityMeasurement.rdf
 
@@ -111,7 +114,7 @@ class Dataset(Resource):
             raise TypeError(
                 (
                     "hasQualityMeasurement must be a "
-                    "DQVMeasurement's  class instance."
+                    "CompletenessMeasurement's  class instance."
                 )
             )
 

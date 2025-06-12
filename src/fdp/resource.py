@@ -1,16 +1,17 @@
 # pylint: disable=missing-module-docstring
 # pylint: disable=unidiomatic-typecheck,too-many-instance-attributes
 import datetime
-import json
 
 from rdflib import URIRef, Literal, Graph, BNode, IdentifiedNode
 from rdflib.namespace import DCTERMS, DCAT, Namespace, RDF
 
 import fdp.fairdatapoint
-from fdp.base import FairDataPointItem, SetEncoder
+from fdp.fairdatapointitem import FairDataPointItem
 
 DQV = Namespace("http://www.w3.org/ns/dqv#")
 SPDX = Namespace("http://spdx.org/rdf/terms#")
+LDQD = Namespace("https://www.w3.org/2016/05/ldqd#")
+LOCAL = Namespace("#")
 
 
 class Resource(FairDataPointItem):
@@ -46,6 +47,8 @@ class Resource(FairDataPointItem):
         self._rdf.bind("dcterms", DCTERMS)
         self._rdf.bind("dqv", DQV)
         self._rdf.bind("spdx", SPDX)
+        self._rdf.bind("ldqd", LDQD)
+        self._rdf.bind("", LOCAL)
 
         self._uuid = uuid
 
@@ -94,8 +97,8 @@ class Resource(FairDataPointItem):
             self._tainted = True
         else:
             raise TypeError(
-                ("creator must be a FOAFAgent's class instance " "or a string.")
-            )
+                ("creator must be a FOAFAgent's class instance "
+                 "or a string."))
 
         self._rdf.add((self._iri, DCTERMS.creator, self._creator.iri))
 
@@ -219,8 +222,8 @@ class Resource(FairDataPointItem):
             self._theme = str(theme_uri)
         else:
             raise TypeError(
-                ("theme property must be an URIRef " "class instance or a str.")
-            )
+                ("theme property must be an URIRef "
+                 "class instance or a str."))
 
         self._rdf.add((self._iri, DCAT.theme, URIRef(self._theme)))
 
@@ -251,7 +254,8 @@ class Resource(FairDataPointItem):
 
     @version.setter
     def version(
-        self, version: str or fdp.version.Version or int or tuple(int, int, int)
+        self,
+        version: str or fdp.version.Version or int or tuple(int, int, int)
     ):
         if type(version) is str:
             self._version = fdp.version.Version(version=version)
@@ -260,7 +264,8 @@ class Resource(FairDataPointItem):
         elif type(version) is fdp.version.Version:
             self._version = version
         elif type(version) is int:
-            self._version = fdp.version.Version(major=version, minor=0, patch=0)
+            self._version = fdp.version.Version(
+                major=version, minor=0, patch=0)
         else:
             raise TypeError("version must be a Version's class valid value.")
         self._rdf.add(
