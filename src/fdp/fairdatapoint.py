@@ -51,8 +51,12 @@ class FairDataPoint():
         _uuids = {_i.rpartition('/')[2]: _i for _i in _uuids}
 
         for _uuid, _iri in _uuids.items():
+            _r = self.get(path=_iri, absolute=True)
+            _g = Graph()
+            _g.parse(data=_r['content'])
+
             _c = fdp.catalog.Catalog(self, _iri)
-            _c.read()                               # pylint: disable=no-member
+            _c._content_setter(_g)
             _uuids[_uuid] = _c
 
         return _uuids
@@ -154,7 +158,9 @@ class FairDataPoint():
         :raises NotPresentError: if the item is not present in the Fair Data
                                  Point
         """
-        if isinstance(fairdatapointitem, fdp.base.FairDataPointItem):
+        from fdp.fairdatapointitem import FairDataPointItem
+
+        if isinstance(fairdatapointitem, FairDataPointItem):
             self._rest_operator.delete(fairdatapointitem.URL_PATH,
                                        fairdatapointitem.uuid)
         else:

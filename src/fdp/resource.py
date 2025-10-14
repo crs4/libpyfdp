@@ -7,6 +7,7 @@ from rdflib.namespace import DCTERMS, DCAT, Namespace, RDF
 
 import fdp.fairdatapoint
 from fdp.fairdatapointitem import FairDataPointItem
+import fdp
 
 DQV = Namespace("http://www.w3.org/ns/dqv#")
 SPDX = Namespace("http://spdx.org/rdf/terms#")
@@ -61,6 +62,10 @@ class Resource(FairDataPointItem):
                 raise TypeError(
                     (f"Type {type(iri)} not allowed for " '"iri" argument')
                 )
+
+            if self._uuid is None:
+                _, _, self._uuid = str(self._iri).rpartition('/')
+
         elif self._uuid is not None:
             self._iri = URIRef(
                 f"{self._fair_data_point.url}/resource/{self._uuid}"
@@ -83,7 +88,15 @@ class Resource(FairDataPointItem):
         return self._creator
 
     @creator.setter
-    def creator(self, creator: str or dict or fdp.foaf.FOAFAgent):
+    def creator(self, creator: str or dict or fdp.foaf.FOAFAgent or Graph):
+        if isinstance(creator, Graph):
+            for s in creator.objects(self._iri, DCTERMS.creator):
+                creator_rdf = creator.cbd(s)
+                creator = fdp.foaf.FOAFFactory(
+                    self._fair_data_point).get_agent(creator_rdf)
+                creator._content_setter(
+                    creator_rdf)
+
         if isinstance(creator, str):
             self._creator = fdp.foaf.FOAFAgent()
             self._creator.name = creator
@@ -108,7 +121,11 @@ class Resource(FairDataPointItem):
         return self._description
 
     @description.setter
-    def description(self, description: str or Literal):
+    def description(self, description: str or Literal or Graph):
+        if type(description) is Graph:
+            description = description.value(self._iri, DCTERMS.description,
+                                            any=False)
+
         if type(description) is str:
             self._description = description
         elif type(description) is Literal:
@@ -128,11 +145,16 @@ class Resource(FairDataPointItem):
         return self._issued
 
     @issued.setter
-    def issued(self, issued: datetime.datetime or str):
+    def issued(self, issued: datetime.datetime or str or Graph or Literal):
+        if type(issued) is Graph:
+            issued = issued.value(self._iri, DCTERMS.issued, any=False)
+
         if type(issued) is datetime.datetime:
             self._issued = issued
         elif type(issued) is str:
             self._issued = datetime.datetime.fromisoformat(issued)
+        elif type(issued) is Literal:
+            self._issued = datetime.datetime.fromisoformat(str(issued))
         else:
             raise TypeError(
                 (
@@ -157,7 +179,11 @@ class Resource(FairDataPointItem):
         return self._license
 
     @license.setter
-    def license(self, license_uri: str):
+    def license(self, license_uri: str or Graph):
+        if type(license_uri) is Graph:
+            license_uri = license_uri.value(self._iri, DCTERMS.license,
+                                            any=False)
+
         if type(license_uri) is str:
             self._license = license_uri
         elif type(license_uri) is URIRef:
@@ -180,7 +206,15 @@ class Resource(FairDataPointItem):
         return self._publisher
 
     @publisher.setter
-    def publisher(self, publisher: str or dict or fdp.foaf.FOAFAgent):
+    def publisher(self, publisher: str or dict or fdp.foaf.FOAFAgent or Graph):
+        if isinstance(publisher, Graph):
+            for s in publisher.objects(self._iri, DCTERMS.publisher):
+                publisher_rdf = publisher.cbd(s)
+                publisher = fdp.foaf.FOAFFactory(
+                    self._fair_data_point).get_agent(publisher_rdf)
+                publisher._content_setter(
+                    publisher_rdf)
+
         if isinstance(publisher, str):
             self._publisher = fdp.foaf.FOAFAgent()
             self._publisher.name = publisher
@@ -235,7 +269,10 @@ class Resource(FairDataPointItem):
         return self._title
 
     @title.setter
-    def title(self, title: str or Literal):
+    def title(self, title: str or Literal or Graph):
+        if type(title) is Graph:
+            title = title.value(self._iri, DCTERMS.title, any=False)
+
         if type(title) is str:
             self._title = title
         elif type(title) is Literal:
@@ -253,12 +290,19 @@ class Resource(FairDataPointItem):
         return self._version
 
     @version.setter
-    def version(
-        self,
-        version: str or fdp.version.Version or int or tuple(int, int, int)
-    ):
+    def version(self, version: str
+                or fdp.version.Version
+                or int
+                or tuple(int, int, int)
+                or Graph
+                or Literal):
+        if type(version) is Graph:
+            version = version.value(self._iri, DCAT.version, any=False)
+
         if type(version) is str:
             self._version = fdp.version.Version(version=version)
+        elif type(version) is Literal:
+            self._version = fdp.version.Version(version=str(version))
         elif type(version) is tuple:
             self._version = fdp.version.Version(version=version)
         elif type(version) is fdp.version.Version:
@@ -281,3 +325,11 @@ class Resource(FairDataPointItem):
 
     def _content(self):
         return self._rdf.serialize(format="turtle")
+
+    def _content_setter(self, rdf):
+        for _p in self._WRITE_PROPERTIES:
+            if hasattr(self, f"add_{_p}"):
+                func = getattr(self, f"add_{_p}")
+                func(rdf)
+            else:
+                setattr(self, f"{_p}", rdf)

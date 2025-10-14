@@ -1,7 +1,7 @@
 # pylint: disable=missing-module-docstring
 # pylint: disable=unidiomatic-typecheck,too-many-instance-attributes
 
-from rdflib import URIRef, BNode, IdentifiedNode, Literal
+from rdflib import Graph, URIRef, BNode, IdentifiedNode, Literal
 from rdflib.namespace import DCAT, DCTERMS, RDF, FOAF  # , XSD, SKOS
 
 import fdp.fairdatapoint
@@ -64,8 +64,13 @@ class Catalog(Dataset):
         return self._homepage
 
     @homepage.setter
-    def homepage(self, homepage: str or Literal):
-        if type(homepage) is str:
+    def homepage(self, homepage: str or Literal or Graph):
+        if type(homepage) is Graph:
+            homepage = homepage.value(self._iri, FOAF.homepage, any=False)
+
+        if homepage is None:
+            return
+        elif type(homepage) is str:
             self._homepage = homepage
         elif type(homepage) is Literal:
             self._homepage = str(homepage)

@@ -283,13 +283,23 @@ class FairDataPointItem():
         Fair Data Point."""
         return self._get_all(**kwargs)
 
-    def inspect(self):
+    def inspect(self, internals: bool = False):
         """Retrieves the value of the class properties.
 
         :return: a dictionary with the class's properties.
         :rtype: dict
         """
-        return {_p: getattr(self, f"_{_p}") for _p in self._CLASS_PROPERTIES}
+        _inspect = {_p: getattr(self, f"_{_p}") for _p in
+                    self._CLASS_PROPERTIES}
+
+        if internals:
+            _inspect.update({
+                "iri": self._iri,
+                "uuid": self._uuid,
+                "tainted": self._tainted,
+            })
+
+        return _inspect
 
     def check_duplicates(self, ignore_case: bool = False):
         """Commodity function that checks if the given Item is already present

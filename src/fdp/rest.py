@@ -159,6 +159,12 @@ class RestOperator(object):
                 **default_headers, **headers
             } if headers is not None else default_headers)
 
+        # print(
+        #     "GET",
+        #     uri if absolute else f"{self.base_url}/{uri}",
+        #     actual_headers,
+        #     parameters
+        # )
         response = requests.request(
             "GET",
             uri if absolute else f"{self.base_url}/{uri}",

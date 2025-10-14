@@ -113,15 +113,20 @@ class FairDataPointFinder():
 
             for r in ret["results"]["bindings"]:
                 from fdp.dataset import Dataset
+                print(r['dataset']['value'])
                 # result.append(r['dataset']['value'])
-                result.append(Dataset(uuid=r['dataset']['value']))
+
+                if lazy:
+                    result.append(Dataset(uuid=r['dataset']['value']))
+                else:
+                    result.append(Dataset(
+                        fair_data_point=self._fair_data_point
+                    ).get(uuid=r['dataset']['value'], absolute=True))
+
         except Exception as e:
             logger.error(e)
 
-        if not lazy:
-            for d in result:
-                print(f"d.retrieve({d})")
-
+        print(result)
         return result
 
     def datasetseries(self):
