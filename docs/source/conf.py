@@ -11,10 +11,10 @@ sys.path.insert(0, os.path.abspath(os.path.join('..', '..')))
 
 
 project = 'LibPyFDP'
-copyright = ('2024, CRS4 - Center for Advanced Studies, Research and '
+copyright = ('2024, 2025, CRS4 - Center for Advanced Studies, Research and '
              'Development in Sardinia')
 author = 'Massimo Gaggero'
-release = '0.0.1'
+release = '0.1.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -22,7 +22,8 @@ release = '0.0.1'
 extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.autosummary',
               'sphinx.ext.napoleon',
-              'sphinx_favicon']
+              'sphinx_favicon',
+              'sphinx_copybutton']
 
 templates_path = ['_templates']
 exclude_patterns = []
@@ -40,7 +41,8 @@ autodoc_member_order = 'bysource'
 # html_theme = 'cloud'
 # html_theme = 'groundwork'
 # html_theme = "sphinxawesome_theme"
-html_theme = "furo"
+# html_theme = "furo"
+html_theme = "sphinx_book_theme"
 
 html_static_path = ['_static']
 favicons = [

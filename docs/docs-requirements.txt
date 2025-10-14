@@ -2,3 +2,4 @@ Sphinx
 cloud-sptheme
 furo
 sphinx-favicon
+sphinx-copybutton
