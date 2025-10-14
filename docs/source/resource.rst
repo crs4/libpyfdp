@@ -1,7 +1,7 @@
-fdp.resource
-------------
+Resource
+--------
 
-.. automodule:: fdp.resource
+.. autoclass:: fdp.resource.Resource
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,4 +1,4 @@
-fdp.fairdatapointitem
+FairDataPointItem
 ---------------------
 
 .. automodule:: fdp.fairdatapointitem

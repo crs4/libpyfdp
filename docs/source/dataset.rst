@@ -1,7 +1,12 @@
-fdp.dataset
------------
+Dataset and DatasetSeries
+-------------------------
 
-.. automodule:: fdp.dataset
+.. autoclass:: fdp.dataset.Dataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: fdp.dataset.DatasetSeries
    :members:
    :undoc-members:
    :show-inheritance:

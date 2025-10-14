@@ -1,7 +1,7 @@
-fdp.distribution
-----------------
+Distribution
+------------
 
-.. automodule:: fdp.distribution
+.. autoclass:: fdp.distribution.Distribution
    :members:
    :undoc-members:
    :show-inheritance:

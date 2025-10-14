@@ -1,7 +1,7 @@
-fdp.fairdatapointfinder
------------------------
+FairDataPointFinder
+-------------------
 
-.. automodule:: fdp.fairdatapointfinder
+.. autoclass:: fdp.fairdatapointfinder.FairDataPointFinder
    :members:
    :undoc-members:
    :show-inheritance:

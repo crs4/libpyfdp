@@ -1,5 +1,5 @@
-fdp.fairdatapoint
------------------
+FairDataPoint
+-------------
 
 .. automodule:: fdp.fairdatapoint
    :members:

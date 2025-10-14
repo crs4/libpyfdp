@@ -10,18 +10,39 @@ Welcome to LibPyFDP's documentation!
    :maxdepth: 1
    :caption: Modules
 
-   fairdatapoint
-   fairdatapointitem
-   fairdatapointfinder
-   metadataschema
-   resourcedefinition
+DCAT Classes
+============
+
+.. toctree::
+   :maxdepth: 1
+   :caption: DCAT Classes
 
    resource
    catalog
    dataset
    distribution
 
-.. foaf
+Fair Data Point Internal Classes
+================================
+
+This section documents the FOAF entities implemented in the
+``foaf_entities`` module.
+
+Each entity corresponds to a FOAF class, and can be used to model
+agents, people, groups, and organizations.
+
+.. toctree::
+   :maxdepth: 1
+   :caption: FDP Internal Classes
+
+   fdp_schemas
+
+   fairdatapoint
+   fairdatapointitem
+   fairdatapointfinder
+
+
+   foaf
 .. metrics
 .. rest
 .. time

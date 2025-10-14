@@ -1,7 +1,7 @@
-fdp.catalog
------------
+Catalog
+-------
 
-.. automodule:: fdp.catalog
+.. autoclass:: fdp.catalog.Catalog
    :members:
    :undoc-members:
    :show-inheritance:
