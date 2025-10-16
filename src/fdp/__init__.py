@@ -14,6 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""LibPyFDP: A Python library for DCAT metadata management for Fair Data Points."""
+
+from importlib import metadata
+
+__version__ = metadata.version("LibPyFDP")
+
 from . import rest
 from . import fairdatapoint
 from . import base
