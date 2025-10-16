@@ -3,7 +3,7 @@ name = "LibPyFDP"
 version = "0.1.0"
 description = "A Python library for DCAT metadata management for Fair Data Points"
 authors = [
-    { name = "Massimo Gaggero", email = "name dot surname at crs4 dot it" }
+    { name = "Massimo Gaggero" }
 ]
 readme = "README.md"
 license = { text = "Apache-2.0" }
@@ -22,6 +22,14 @@ docs = [
     "sphinx-favicon",
     "cloud-sptheme"
 ]
+
+[project.urls]
+Homepage = "https://github.com/crs4/libpyfdp"
+Repository = "https://github.com/crs4/libpyfdp"
+Documentation = "https://crs4.github.io/libpyfdp"
+
+[tool.metadata]
+copyright = "Copyright (c) 2024-2025 CRS4 - Center for Advanced Studies, Research and Development in Sardinia"
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
