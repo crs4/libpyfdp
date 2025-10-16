@@ -3,14 +3,15 @@ name = "LibPyFDP"
 version = "0.1.0"
 description = "A Python library for DCAT metadata management for Fair Data Points"
 authors = [
-    { name = "Your Name", email = "you@example.com" }
+    { name = "Massimo Gaggero", email = "name dot surname at crs4 dot it" }
 ]
 readme = "README.md"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.10"
 dependencies = [
     "rdflib",
-    "requests"
+    "requests",
+    "SPARQLWrapper"
 ]
 
 [project.optional-dependencies]
