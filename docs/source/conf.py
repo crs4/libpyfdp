@@ -44,6 +44,13 @@ autodoc_member_order = 'bysource'
 # html_theme = "furo"
 html_theme = "sphinx_book_theme"
 
+html_theme_options = {
+    "collapse_navigation": True,
+    "repository_url": "https://github.com/crs4/libpyfdp",
+    "use_repository_button": True,
+    "use_download_button": False,
+}
+
 html_static_path = ['_static']
 favicons = [
     'favicon.ico',

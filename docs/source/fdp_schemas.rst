@@ -1,5 +1,5 @@
-Fair Data Point Schemas
------------------------
+Fair Data Point Schemas and Definitions
+---------------------------------------
 
 .. autoclass:: fdp.metadataschema.MetadataSchema
    :members:
