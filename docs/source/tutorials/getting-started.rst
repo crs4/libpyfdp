@@ -81,11 +81,13 @@ A Catalog is the top-level container for datasets in DCAT:
 .. code-block:: python
 
    import fdp
+   from fdp.catalog import Catalog
+   from fdp.foaf import FOAFOrganization
 
    catalog = Catalog(
        title="My Research Data Catalog",
        description="Collection of datasets from our research project",
-       publisher=fdp.foaf.FOAFOrganization(
+       publisher=FOAFOrganization(
            name="Research Institution",
            homepage="https://www.example.com/research_institution",
        ),
