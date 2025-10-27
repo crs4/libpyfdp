@@ -37,6 +37,8 @@ autodoc_member_order = 'bysource'
 
 html_theme = "sphinx_book_theme"
 
+html_logo = "_static/logo.png"
+
 html_theme_options = {
     "collapse_navigation": True,
     "repository_url": "https://github.com/crs4/libpyfdp",
