@@ -73,8 +73,10 @@ class Dataset(Resource):
         fair_data_point: fdp.fairdatapoint.FairDataPoint = None,
         iri: str = None,
         uuid: str = None,
+        *args,
+        **kwargs,
     ):
-        super().__init__(fair_data_point, iri, uuid)
+        super().__init__(fair_data_point, iri, uuid, *args, **kwargs)
 
         self._tainted = False
 
@@ -228,7 +230,6 @@ class Dataset(Resource):
     @property
     def rdf(self) -> str:
         return self._rdf
-
 
     def __str__(self):
         return (f"<Dataset uuid={self._uuid}, title=\"{self._title}\""

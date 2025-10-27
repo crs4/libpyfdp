@@ -55,6 +55,8 @@ class Resource(FairDataPointItem):
         fair_data_point: fdp.fairdatapoint.FairDataPoint = None,
         iri: str = None,
         uuid: str = None,
+        *args,
+        **kwargs,
     ):
         super().__init__(fair_data_point)
 
@@ -92,6 +94,14 @@ class Resource(FairDataPointItem):
         self._tainted = False
 
         self._rdf.add((self._iri, RDF.type, DCAT.Resource))
+
+        for _p, _v in kwargs.items():
+            if _p in self._WRITE_PROPERTIES:
+                if hasattr(self, f"add_{_p}"):
+                    func = getattr(self, f"add_{_p}")
+                    func(_v)
+                else:
+                    getattr(type(self), _p).fset(self, _v)
 
     @property
     def iri(self):

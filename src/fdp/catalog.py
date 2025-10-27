@@ -39,9 +39,15 @@ class Catalog(Dataset):
     _READ_PROPERTIES = []
     _CLASS_PROPERTIES = _READ_PROPERTIES + _WRITE_PROPERTIES
 
-    def __init__(self, fair_data_point: fdp.fairdatapoint.FairDataPoint = None,
-                 iri: str = None, uuid: str = None):
-        super().__init__(fair_data_point, iri, uuid)
+    def __init__(
+        self,
+        fair_data_point: fdp.fairdatapoint.FairDataPoint = None,
+        iri: str = None,
+        uuid: str = None,
+        *args,
+        **kwargs,
+    ):
+        super().__init__(fair_data_point, iri, uuid, *args, **kwargs)
 
         if iri is not None:
             if type(iri) is str:
