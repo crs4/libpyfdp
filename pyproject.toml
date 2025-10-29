@@ -1,7 +1,7 @@
 [project]
 name = "LibPyFDP"
 version = "0.1.0"
-description = "A Python library for DCAT metadata management for Fair Data Points"
+description = "A Python library for DCAT metadata management in Fair Data Points"
 authors = [
     { name = "Massimo Gaggero" }
 ]
