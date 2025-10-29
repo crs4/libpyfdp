@@ -1,5 +1,6 @@
 Sphinx
-sphinx-favicon
-sphinx-copybutton
 sphinx_book_theme
+sphinx-copybutton
+sphinx_design
+sphinx-favicon
 myst_nb
