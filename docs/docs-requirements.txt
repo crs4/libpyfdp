@@ -2,3 +2,4 @@ Sphinx
 sphinx-favicon
 sphinx-copybutton
 sphinx_book_theme
+myst_nb
