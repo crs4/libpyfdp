@@ -412,13 +412,12 @@ class Resource(FairDataPointItem):
 
         The version identifier for the resource.
 
-        :type: :class:`str`, :class:`int`, Tuple[int, int, int],
-            :class:`fdp.version.Version`, :class:`rdflib.graph.Graph`,
-            :class:`rdflib.term.Literal`
-            :rtype: :class:`fdp.version.Version`
+        :type: :class:`str`, :class:`int`, Tuple[:class:`int`, :class:`int`,
+            :class:`int`], :class:`fdp.version.Version`,
+            :class:`rdflib.graph.Graph`, :class:`rdflib.term.Literal`
+        :rtype: :class:`fdp.version.Version`
 
         :returns: The version of the resource in one of the supported formats.
-
         """
         return self._version
 
