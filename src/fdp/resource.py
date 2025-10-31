@@ -32,7 +32,32 @@ LOCAL = Namespace("#")
 
 
 class Resource(FairDataPointItem):
-    """Class representing a DCATv3 Cataloged Resource"""
+    """
+    Class representing a DCAT `dcat:Resource` entity.
+
+    This class provides common metadata fields shared by all DCAT resource
+    types, such as :class:`Catalog`, :class:`Dataset`, or :class:`DataSeries`.
+    It serves as a base class defining core descriptive, provenance, and
+    administrative properties.
+
+    **RDF Class**
+        ``dcat:Resource``
+
+    **Common subclasses**
+        - :class:`Catalog`
+        - :class:`Dataset`
+        - :class:`DataSeries`
+
+    **Supported Resource Properties**
+        - :attr:`creator`
+        - :attr:`description`
+        - :attr:`issued`
+        - :attr:`license`
+        - :attr:`publisher`
+        - :attr:`theme`
+        - :attr:`title`
+        - :attr:`version`
+    """
 
     URL_PATH = "resource"
     CONTENT_TYPE = "text/turtle"
@@ -110,11 +135,18 @@ class Resource(FairDataPointItem):
 
     @property
     def creator(self):
-        """The ``dcterms:creator`` property."""
+        """
+        The ``dcterms:creator`` property.
+
+        :type: :class:`str`, :class:`FOAFAgent`, :class:`Graph`
+        :rtype: :class:`fdp.foaf.FOAFAgent`
+
+        :return: The resource’s creator.
+        """
         return self._creator
 
     @creator.setter
-    def creator(self, creator: str or dict or fdp.foaf.FOAFAgent or Graph):
+    def creator(self, creator: str | fdp.foaf.FOAFAgent | Graph):
         if isinstance(creator, Graph):
             for s in creator.objects(self._iri, DCTERMS.creator):
                 creator_rdf = creator.cbd(s)
@@ -143,11 +175,21 @@ class Resource(FairDataPointItem):
 
     @property
     def description(self):
-        """The ``dcterms:description`` property."""
+        """
+        The ``dcterms:description`` property.
+
+        A free-text description of the resource.
+
+        :type: :class:`str`, :class:`rdflib.term.Literal`,
+            :class:`rdflib.graph.Graph`
+        :rtype: :class:`str`
+
+        :returns: The resource's description.
+        """
         return self._description
 
     @description.setter
-    def description(self, description: str or Literal or Graph):
+    def description(self, description: str | Literal | Graph):
         if type(description) is Graph:
             description = description.value(self._iri, DCTERMS.description,
                                             any=False)
@@ -167,11 +209,21 @@ class Resource(FairDataPointItem):
 
     @property
     def issued(self):
-        """The ``dcterms:issued`` property."""
+        """
+        The ``dcterms:issued`` property.
+
+        The date the resource was formally issued or published.
+
+        :type: :class:`str`, :class:`datetime.date`,
+            :class:`rdflib.graph.Graph`, :class:`rdflib.term.Literal`,
+        :rtype: :class:`datetime.date`
+
+        :returns: The publication or release date in ISO 8601 format.
+        """
         return self._issued
 
     @issued.setter
-    def issued(self, issued: datetime.datetime or str or Graph or Literal):
+    def issued(self, issued: str | datetime.datetime | Literal | Graph):
         if type(issued) is Graph:
             issued = issued.value(self._iri, DCTERMS.issued, any=False)
 
@@ -196,7 +248,18 @@ class Resource(FairDataPointItem):
 
     @property
     def license(self):
-        """The ``dcterms:license`` property.
+        """
+        The ``dcterms:license`` property.
+
+        The license or rights statement under which the resource is made
+        available.
+
+        :type: :class:`str`, :class:`rdflib.term.URIRef`,
+            :class:`rdflib.graph.Graph`
+        :rtype: :class:`str`
+
+        :returns: A reference to the license resource or a literal text
+            description.
 
         .. note::
             must follow recommendation from:
@@ -205,7 +268,7 @@ class Resource(FairDataPointItem):
         return self._license
 
     @license.setter
-    def license(self, license_uri: str or Graph):
+    def license(self, license_uri: str | URIRef | Graph):
         if type(license_uri) is Graph:
             license_uri = license_uri.value(self._iri, DCTERMS.license,
                                             any=False)
@@ -228,11 +291,20 @@ class Resource(FairDataPointItem):
 
     @property
     def publisher(self):
-        """The ``dcterms:publisher`` property."""
+        """
+        The ``dcterms:publisher`` property.
+
+        The entity responsible for making the resource available.
+
+        :type: :class:`str`, :class:`FOAFAgent`, :class:`rdflib.graph.Graph`
+        :rtype: :class:`fdp.foaf.FOAFAgent`
+
+        :returns: The publisher, typically a FOAF Agent.
+        """
         return self._publisher
 
     @publisher.setter
-    def publisher(self, publisher: str or dict or fdp.foaf.FOAFAgent or Graph):
+    def publisher(self, publisher: str | fdp.foaf.FOAFAgent | Graph):
         if isinstance(publisher, Graph):
             for s in publisher.objects(self._iri, DCTERMS.publisher):
                 publisher_rdf = publisher.cbd(s)
@@ -266,16 +338,29 @@ class Resource(FairDataPointItem):
 
     @property
     def theme(self):
-        """The ``dcat:theme`` property.
+        """
+        The ``dcat:theme`` property.
+
+        The main category or subject of the resource.
+
+        :type: :class:`str`, :class:`rdflib.term.URIRef`
+        :rtype: :class:`str`
+
+        :returns: The resource's theme.
 
         .. note::
             a list of themes can be found here:
             https://inspire.ec.europa.eu/theme
+
+        .. warning::
+            Currently, only a single theme value is supported.
+            The interface may change in future versions to support
+            multiple themes.
         """
         return self._theme
 
     @theme.setter
-    def theme(self, theme_uri: str):
+    def theme(self, theme_uri: str | URIRef):
         if type(theme_uri) is str:
             self._theme = theme_uri
         elif type(theme_uri) is URIRef:
@@ -291,7 +376,17 @@ class Resource(FairDataPointItem):
 
     @property
     def title(self):
-        """The ``dcterms:title`` property."""
+        """
+        The ``dcterms:title`` property.
+
+        The human-readable title of the resource.
+
+        :type: :class:`str`, :class:`rdflib.term.Literal`,
+            :class:`rdflib.graph.Graph`
+            :rtype: :class:`str`
+
+        :returns: The preferred label or name of the resource.
+        """
         return self._title
 
     @title.setter
@@ -312,7 +407,19 @@ class Resource(FairDataPointItem):
 
     @property
     def version(self):
-        """The ``dcat:version`` property."""
+        """
+        The ``dcat:version`` property.
+
+        The version identifier for the resource.
+
+        :type: :class:`str`, :class:`int`, Tuple[int, int, int],
+            :class:`fdp.version.Version`, :class:`rdflib.graph.Graph`,
+            :class:`rdflib.term.Literal`
+            :rtype: :class:`fdp.version.Version`
+
+        :returns: The version of the resource in one of the supported formats.
+
+        """
         return self._version
 
     @version.setter
