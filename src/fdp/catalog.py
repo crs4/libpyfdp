@@ -28,6 +28,60 @@ import fdp.version
 class Catalog(Dataset):
     """Class representing a DCATv3 Catalog.
 
+    Represents a DCAT :class:`dcat:Catalog` entity.
+
+    A **Catalog** is a curated collection of DCAT resources such as datasets,
+    data services, or data series. It serves as a central entry point that
+    provides metadata, discovery, and access to the resources it contains.
+
+    This class extends both :class:`fdp.dataset.Dataset` and
+    :class:`fdp.resource.Resource`, inheriting
+    descriptive, provenance, and administrative metadata such as
+    :attr:`title`, :attr:`description`, :attr:`creator`, and :attr:`issued`.
+
+    **RDF Class**
+        ``dcat:Catalog``
+
+    **Base Classes**
+        - :class:`fdp.dataset.Dataset`
+        - :class:`fdp.resource.Resource`
+
+    **Supported Inherited Properties**
+        From :class:`fdp.resource.Resource`:
+            - :attr:`creator`
+            - :attr:`description`
+            - :attr:`issued`
+            - :attr:`license`
+            - :attr:`publisher`
+            - :attr:`theme`
+            - :attr:`title`
+            - :attr:`version`
+
+        From :class:`fdp.dataset.Dataset`:
+            - :attr:`distribution`
+            - :attr:`temporal`
+
+    **Supported Catalog-specific Properties**
+        - :attr:`homepage` — the catalog’s landing page
+
+    **Example**
+        >>> from fdp.catalog import Catalog
+        >>> cat = Catalog()
+        >>> cat.title = "Open Data Catalog"
+        >>> cat.homepage = "https://data.example.org/catalog"
+
+    .. note::
+        Some properties inherited from :class:`Dataset` and :class:`Resource`
+        may be specialized or extended in this class to reflect the semantics
+        of ``dcat:Catalog``. For instance, :attr:`homepage` identifies the
+        human-readable catalog landing page, while :attr:`dataset` lists
+        contained datasets.
+
+    .. seealso::
+        - `DCAT Vocabulary (W3C Recommendation) <https://www.w3.org/TR/vocab-dcat-3/>`_
+        - :class:`Dataset`
+        - :class:`Resource`
+
     :var uuid: the uuid that is assigned by the Fair Data Point
     :vartype uuid: str
     """
@@ -82,11 +136,21 @@ class Catalog(Dataset):
 
     @property
     def homepage(self):
-        """The ``foaf:homepage`` property."""
+        """
+        The ``foaf:homepage`` property.
+
+        The homepage or landing page of the catalog.
+
+        :type: :class:`str`, :class:`rdflib.term.Literal`,
+            :class:`rdflib.graph.Graph`
+        :rtype: :class:`str`
+
+        :returns: The catalog’s homepage.
+        """
         return self._homepage
 
     @homepage.setter
-    def homepage(self, homepage: str or Literal or Graph):
+    def homepage(self, homepage: str | Literal | Graph):
         if type(homepage) is Graph:
             homepage = homepage.value(self._iri, FOAF.homepage, any=False)
 
@@ -105,6 +169,41 @@ class Catalog(Dataset):
             URIRef(self._homepage)))
 
         self._tainted = True
+
+    ###########################################################################
+    # Inherited but not supported properties by Catalog DCATv3 Class          #
+    ###########################################################################
+    @property
+    def hasQualityMeasurement(self):
+        raise NotImplementedError(
+            "The 'hasQualityMeasurement' property "
+            "is not supported by Catalog.")
+
+    @hasQualityMeasurement.setter
+    def hasQualityMeasurement(self, value):
+        raise NotImplementedError(
+            "The 'hasQualityMeasurement' property "
+            "is not supported by Catalog.")
+
+    @property
+    def inSeries(self):
+        raise NotImplementedError(
+            "The 'inSeries' property is not supported by Catalog.")
+
+    @inSeries.setter
+    def inSeries(self, value):
+        raise NotImplementedError(
+            "The 'inSeries' property is not supported by Catalog.")
+
+    @property
+    def isPartOf(self):
+        raise NotImplementedError(
+            "The 'isPartOf' property is not supported by Catalog.")
+
+    @isPartOf.setter
+    def isPartOf(self, value):
+        raise NotImplementedError(
+            "The 'isPartOf' property is not supported by Catalog.")
 
     ###########################################################################
     def __str__(self):
