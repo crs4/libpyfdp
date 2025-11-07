@@ -113,7 +113,9 @@ class FOAFFactory:
     _SUPPORTED_CLASSES = ['foaf:Agent', 'foaf:Group', 'foaf:Organization',
                           'foaf:Person']
 
-    def __init__(self, fair_data_point: fdp.fairdatapoint.FairDataPoint):
+    def __init__(
+            self,
+            fair_data_point: fdp.fairdatapoint.FairDataPoint = None):
         self._fair_data_point = fair_data_point
 
     def get_agent(self, rdf_graph: Graph):
