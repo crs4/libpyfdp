@@ -26,9 +26,8 @@ import fdp.version
 
 
 class Catalog(Dataset):
-    """Class representing a DCATv3 Catalog.
-
-    Represents a DCAT :class:`dcat:Catalog` entity.
+    """
+    Class representing a DCATv3 :class:`dcat:Catalog` entity.
 
     A **Catalog** is a curated collection of DCAT resources such as datasets,
     data services, or data series. It serves as a central entry point that

@@ -100,18 +100,18 @@ class TestDataset(TestResource):
         dataset = testing_class()
         dataset.add_distribution(tsv_distribution)
 
-        assert len(dataset.distributions) == 1
+        assert len(dataset.distribution) == 1
 
         dataset.add_distribution(csv_distribution)
 
-        assert len(dataset.distributions) == 2
+        assert len(dataset.distribution) == 2
 
         # check duplications
         dataset.add_distribution(csv_distribution)
 
-        assert len(dataset.distributions) == 2
+        assert len(dataset.distribution) == 2
 
-        for distro_iri, distro_obj in dataset.distributions.items():
+        for distro_iri, distro_obj in dataset.distribution.items():
             assert distro_iri in [tsv_distribution.iri, csv_distribution.iri]
             assert type(distro_obj) is Distribution
 
