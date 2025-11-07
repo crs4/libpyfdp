@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [ "develop" ]
+  pull_request:
+    branches: [ "develop" ]
+
+  workflow_dispatch:
+
+jobs:
+  unit-test-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install LibPyFDP and dependencies
+        run: |
+          pip install -e .
+
+      - name: Run unittests
+        run: |
+          pip install --upgrade pip
+          pip install -r libpyfdp/requirements.txt
+          pip install -r libpyfdp/tests/tests-requirements.txt
+          pytest --show-capture=stdout -c libpyfdp/tests/pytest.ini libpyfdp/tests/unit/ -v
+          # pytest --show-capture=stdout --docker-compose-remove-volumes -c libpyfdp/tests/pytest.ini libpyfdp/tests/integration/ -v -s
+          pytest --cov=fdp libpyfdp/tests/unit
