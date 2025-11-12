@@ -54,8 +54,8 @@ class FairDataPoint():
     def find_catalogs(self) -> dict:
         """Retrieves all the catalogs belonging to the Fair Data Point.
 
-        :return: a dictionary ```{uuid: Catalog}```
-        :rtype: dict with str keys and Catalog class values
+        :return: a list of ```:class:Catalog}```
+        :rtype: List[Catalog]
         """
         headers = {
             'Content-Type': 'text/turtle',
@@ -64,18 +64,19 @@ class FairDataPoint():
         r = self._rest_operator.get('', headers=headers)
         _rdf = Graph().parse(data=r['content'])
         _uuids = list(_rdf.objects(None, LDP.contains, unique=True))
-        _uuids = {_i.rpartition('/')[2]: _i for _i in _uuids}
+        _catalogs = []
 
-        for _uuid, _iri in _uuids.items():
+        for _iri in _uuids:
             _r = self.get(path=_iri, absolute=True)
             _g = Graph()
             _g.parse(data=_r['content'])
 
             _c = fdp.catalog.Catalog(self, _iri)
             _c._content_setter(_g)
-            _uuids[_uuid] = _c
 
-        return _uuids
+            _catalogs.append(_c)
+
+        return _catalogs
 
     def __str__(self):
         return f'<Fair Data Point client pointing to {self._url}>'
