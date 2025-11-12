@@ -17,6 +17,7 @@
 # pylint: disable=missing-module-docstring
 # pylint: disable=unidiomatic-typecheck,too-many-instance-attributes
 import datetime
+from urllib.parse import urlparse
 
 from rdflib import URIRef, Literal, Graph, BNode, IdentifiedNode
 from rdflib.namespace import DCTERMS, DCAT, Namespace, RDF
@@ -105,13 +106,15 @@ class Resource(FairDataPointItem):
                 raise TypeError(
                     (f"Type {type(iri)} not allowed for " '"iri" argument')
                 )
-
             if self._uuid is None:
-                _, _, self._uuid = str(self._iri).rpartition('/')
+                p = urlparse(str(self._iri))
+                if all([p.scheme, p.netloc]) and (
+                       p.path and not p.path[-1] == "/"):
+                    self._uuid = p.path.rstrip("/").split("/")[-1]
 
         elif self._uuid is not None:
             self._iri = URIRef(
-                f"{self._fair_data_point.url}/resource/{self._uuid}"
+                f"{self._fair_data_point.url}/{self.URL_PATH}/{self._uuid}"
             )
         else:
             self._iri = BNode()

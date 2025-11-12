@@ -102,20 +102,6 @@ class Catalog(Dataset):
     ):
         super().__init__(fair_data_point, iri, uuid, *args, **kwargs)
 
-        if iri is not None:
-            if type(iri) is str:
-                self._iri = URIRef(iri)
-            elif type(iri) in [IdentifiedNode, URIRef, BNode]:
-                self._iri = iri
-            else:
-                raise TypeError((f'Type {type(iri)} not allowed for '
-                                 '"iri" argument'))
-        elif self._uuid is not None:
-            self._iri = URIRef(
-                f'{self._fair_data_point.url}/catalog/{self._uuid}')
-        else:
-            self._iri = BNode()
-
         self._tainted = False
 
         self._rdf.add((

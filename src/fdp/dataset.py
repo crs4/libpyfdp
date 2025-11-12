@@ -375,8 +375,10 @@ class DatasetSeries(Dataset):
         fair_data_point: fdp.fairdatapoint.FairDataPoint = None,
         iri: str = None,
         uuid: str = None,
+        *args,
+        **kwargs,
     ):
-        super().__init__(fair_data_point, iri, uuid)
+        super().__init__(fair_data_point, iri, uuid, *args, **kwargs)
 
         self._tainted = False
 
