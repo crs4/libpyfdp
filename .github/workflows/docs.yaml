@@ -21,9 +21,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install LibPyFDP, dependencies and build site
+      - name: Install LibPyFDP and dependencies
         run: |
           pip install -e .
+
+      - name: Run tests and generate coverage report
+        run: |
+          pytest --cov=fdp --cov-report xml:coverage.xml --cov-report html:docs/build/html/coverage-html tests/unit
+          COVERAGE=$(python -c "
+import xml.etree.ElementTree as ET
+tree = ET.parse('coverage.xml')
+root = tree.getroot()
+print(int(float(root.attrib['line-rate'])*100))
+")
+          mkdir -p docs/build/html/badges/
+          curl -s "https://img.shields.io/badge/coverage-${COVERAGE}%25-brightgreen.svg" -o docs/build/html/badges/coverage.svg
+          echo "Coverage badge generated: ${COVERAGE}%"
+
+      - name: Build the site
+        run: |
           cd docs
           pip install -r docs-requirements.txt
           make html
