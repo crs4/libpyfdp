@@ -28,12 +28,13 @@ jobs:
       - name: Run tests and generate coverage report
         run: |
           pytest --cov=fdp --cov-report xml:coverage.xml --cov-report html:docs/build/html/coverage-html tests/unit
-          COVERAGE=$(python -c "
+          COVERAGE=$(python - <<'EOF'
 import xml.etree.ElementTree as ET
 tree = ET.parse('coverage.xml')
 root = tree.getroot()
 print(int(float(root.attrib['line-rate'])*100))
-")
+EOF
+)
           mkdir -p docs/build/html/badges/
           curl -s "https://img.shields.io/badge/coverage-${COVERAGE}%25-brightgreen.svg" -o docs/build/html/badges/coverage.svg
           echo "Coverage badge generated: ${COVERAGE}%"
