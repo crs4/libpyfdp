@@ -6,6 +6,7 @@ A Python library for DCAT metadata management in Fair Data Points
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/crs4/libpyfdp/docs.yaml?label=docs)
 ![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fcrs4%2Flibpyfdp%2Frefs%2Fheads%2Fdevelop%2Fpyproject.toml)
 ![GitHub License](https://img.shields.io/github/license/crs4/libpyfdp)
+![Coverage](https://crs4.github.io/libpyfdp/badges/coverage.svg)
 
 The LibPyFDP library simplifies the process of creating, searching, and managing dataset metadata compliant with the DCAT (Data Catalog Vocabulary) standard for insertion into Fair Data Points. It is designed specifically for data scientists and data analysts who need to make their research data FAIR (Findable, Accessible, Interoperable, and Reusable).
 

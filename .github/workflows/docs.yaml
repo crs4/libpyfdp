@@ -29,7 +29,7 @@ jobs:
 
       - name: Run tests and generate coverage report
         run: |
-          pytest --cov=fdp --cov-report=term --cov-report=json --cov-report=html:docs/build/html/coverage-html tests/unit
+          pytest --cov=fdp --cov-report=term --cov-report=json --cov-report=html:docs/build/html/coverage tests/unit
           COVERAGE=$(python -c "import json; print(json.load(open('coverage.json'))['totals']['percent_covered_display'])")
           mkdir -p docs/build/html/badges/
           curl -s "https://img.shields.io/badge/coverage-${COVERAGE}%25-brightgreen.svg" -o docs/build/html/badges/coverage.svg
