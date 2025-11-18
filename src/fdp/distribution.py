@@ -137,10 +137,33 @@ class Checksum:
 
 
 class Distribution(Resource):
-    """Class representing a DCATv3 dcat:Distribution.
+    """
+    Class representing a DCATv3 dcat:Distribution.
 
-    dcat:Distribution represents an accessible form of a dataset such as a
-    downloadable file.
+    A Distribution describes an accessible form of a Dataset, such as a
+    file download, an API endpoint, or any other form in which the dataset
+    is made available.
+
+    **RDF Class**
+        ``dcat:Distribution``
+
+    **Base Classes**
+        - :class:`fdp.resource.Resource`
+
+    **Supported inherited properties**
+        From :class:`Resource`:
+            - :attr:`license`
+            - :attr:`title`
+            - :attr:`version`
+            - :attr:`publisher`
+
+    **Supported Dataset-specific properties**
+        - :attr:`downloadURL` — url for directly downloading the distribution
+        - :attr:`byteSize` — size of the distribution in bytes
+        - :attr:`mediaType` — IANA media type
+        - :attr:`compressFormat` — compression format
+        - :attr:`checksum` — associated checksum for file integrity
+        - :attr:`isPartOf` — linking of the distribution to a larger collection
     """
 
     URL_PATH = "distribution"
@@ -210,11 +233,19 @@ class Distribution(Resource):
 
     @property
     def downloadURL(self):
-        """The ``dcat:downloadURL`` property."""
+        """
+        The ``dcat:downloadURL`` property.
+
+        The access URL where the distribution can be downloaded.
+
+        :type: str or :class:`rdflib.term.URIRef`
+        :return: The IRI of the download location.
+        :rtype: :class:`rdflib.term.URIRef`
+        """
         return self._downloadURL
 
     @downloadURL.setter
-    def downloadURL(self, downloadURL: str or URIRef):
+    def downloadURL(self, downloadURL: str | URIRef):
         if type(downloadURL) is str:
             self._downloadURL = downloadURL
         elif type(downloadURL) is URIRef:
@@ -228,7 +259,15 @@ class Distribution(Resource):
 
     @property
     def byteSize(self):
-        """The ``dcat:byteSize`` property."""
+        """
+        The ``dcat:byteSize`` property.
+
+        The size of the distribution in bytes.
+
+        :type: int
+        :return: File size expressed in bytes.
+        :rtype: int
+        """
         return self._byteSize
 
     @byteSize.setter
@@ -252,11 +291,24 @@ class Distribution(Resource):
 
     @property
     def mediaType(self):
-        """The ``dcat:mediaType`` property."""
+        """
+        The ``dcat:mediaType`` property.
+
+        The media type of the distribution, typically expressed as a MIME
+        type.
+
+        :rtype: str
+
+        :type: str or :class:`rdflib.term.URIRef`
+        :return: IRI representing the media type, typically from the IANA
+            media type registry (for example,
+            ``"http://www.iana.org/assignments/media-types/text/tab-separated-values"``).
+        :rtype: str
+        """
         return self._mediaType
 
     @mediaType.setter
-    def mediaType(self, mediaType: str or URIRef):
+    def mediaType(self, mediaType: str | URIRef):
         if type(mediaType) is str:
             self._mediaType = mediaType
         elif type(mediaType) is URIRef:
@@ -275,11 +327,20 @@ class Distribution(Resource):
 
     @property
     def compressFormat(self):
-        """The ``dcat:compressFormat`` property."""
+        """
+        The ``dcat:compressFormat`` property.
+
+        The compression format applied to the distribution, such as ZIP,
+        GZIP, or TAR.
+
+        :type: str or :class:`rdflib.term.URIRef`
+        :return: The compression format represented as an IRI.
+        :rtype: str
+        """
         return self._compressFormat
 
     @compressFormat.setter
-    def compressFormat(self, compressFormat: str or URIRef):
+    def compressFormat(self, compressFormat: str | URIRef):
         if type(compressFormat) is str:
             self._compressFormat = compressFormat
         elif type(compressFormat) is URIRef:
@@ -300,7 +361,16 @@ class Distribution(Resource):
 
     @property
     def checksum(self):
-        """The ``dcat:checksum`` property."""
+        """
+        The ``dcat:checksum`` property.
+
+        The checksum associated with the distribution to verify file
+        integrity.
+
+        :type: :class:`fdp.checksum.Checksum`
+        :return: A checksum object describing algorithm and hash value.
+        :rtype: :class:`fdp.checksum.Checksum`
+        """
         return self._checksum
 
     @checksum.setter
@@ -320,11 +390,20 @@ class Distribution(Resource):
 
     @property
     def isPartOf(self) -> dict:
-        """The isPartOf propery of the Dataset."""
+        """
+        The isPartOf propery of the Dataset.
+
+        Identifies a resource or series of which this distribution is a
+        part.
+
+        :type: str or :class:`rdflib.term.URIRef`
+        :return: IRI representing the containing resource or series.
+        :rtype: :class:`rdflib.term.URIRef`
+        """
         return self._isPartOf
 
     @isPartOf.setter
-    def isPartOf(self, is_part_of: str or IdentifiedNode):
+    def isPartOf(self, is_part_of: str | IdentifiedNode):
         if type(is_part_of) is str:
             self._isPartOf = URIRef(is_part_of)
 
