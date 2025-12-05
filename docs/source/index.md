@@ -73,4 +73,5 @@ dcat
 fdp
 
 foaf
+license
 ```
